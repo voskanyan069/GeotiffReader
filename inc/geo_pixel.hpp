@@ -3,6 +3,7 @@
 
 struct Pixel
 {
+public:
 	int row;
 	int col;
 

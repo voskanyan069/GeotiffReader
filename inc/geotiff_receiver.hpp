@@ -23,6 +23,7 @@ private:
 	const std::string host_;
 	const std::string port_;
 	const std::string save_path;
+	const ConnectionType connection_type_;
 
 	boost::system::error_code* ec;
 	boost::asio::io_service* io_service;
