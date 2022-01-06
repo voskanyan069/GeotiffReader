@@ -1,5 +1,5 @@
-#ifndef _GEO_PIXEL_HPP
-#define _GEO_PIXEL_HPP
+#ifndef __GEO_PIXEL_HPP__
+#define __GEO_PIXEL_HPP__
 
 struct Pixel
 {
@@ -15,4 +15,4 @@ struct Pixel
 	}
 };
 
-#endif // _GEO_PIXEL_HPP
+#endif // __GEO_PIXEL_HPP__

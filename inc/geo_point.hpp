@@ -1,5 +1,5 @@
-#ifndef _GEO_POINT_HPP_
-#define _GEO_POINT_HPP_
+#ifndef __GEO_POINT_HPP__
+#define __GEO_POINT_HPP__
 
 #include <cmath>
 
@@ -18,4 +18,4 @@ public:
 	~GeoPoint();
 };
 
-#endif // _GEO_POINT_HPP_
+#endif // __GEO_POINT_HPP__

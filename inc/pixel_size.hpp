@@ -1,5 +1,5 @@
-#ifndef _PIXEL_SIZE_HPP
-#define _PIXEL_SIZE_HPP
+#ifndef __PIXEL_SIZE_HPP__
+#define __PIXEL_SIZE_HPP__
 
 struct PixelSize
 {
@@ -11,4 +11,4 @@ struct PixelSize
 	}
 };
 
-#endif // _PIXEL_SIZE_HPP
+#endif // __PIXEL_SIZE_HPP__

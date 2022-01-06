@@ -1,5 +1,5 @@
-#ifndef _ELEVATION_HPP
-#define _ELEVATION_HPP
+#ifndef __ELEVATION_HPP__
+#define __ELEVATION_HPP__
 
 #include <cmath>
 #include <iostream>
@@ -29,4 +29,4 @@ private:
 	void calculate_lr_corner(double x, double y);
 };
 
-#endif // _ELEVATION_HPP
+#endif // __ELEVATION_HPP__

@@ -1,5 +1,5 @@
-#ifndef _GEOTIFF_HPP
-#define _GEOTIFF_HPP
+#ifndef __GEOTIFF_HPP__
+#define __GEOTIFF_HPP__
 
 #include <iostream>
 #include <string>
@@ -37,4 +37,4 @@ private:
 	int NROWS, NCOLS, NLEVELS;
 };
 
-#endif // _GEOTIFF_HPP
+#endif // __GEOTIFF_HPP__

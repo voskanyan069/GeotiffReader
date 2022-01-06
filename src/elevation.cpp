@@ -6,14 +6,15 @@ DigitalElevation::DigitalElevation()
 
 std::string DigitalElevation::calculate_filename(GeoPoint *point)
 {
-    char fname[64];
+    //char fname[64];
     char vertical_hemisphere = 'N';
     char horizontal_hemisphere = 'E';
 	if (point->latitude() < 0) vertical_hemisphere = 'S';
 	if (point->longitude() < 0) horizontal_hemisphere = 'W';
-	sprintf(fname, "/home/user/projects/elevation_map/resources/geotiff/%c%02.0f%c%03.0f.tif",
-			vertical_hemisphere, point->latitude_name(),
-			horizontal_hemisphere, point->longitude_name());
+	//sprintf(fname, "/home/user/projects/elevation_map/resources/geotiff/%c%02.0f%c%03.0f.tif",
+	//		vertical_hemisphere, point->latitude_name(),
+	//		horizontal_hemisphere, point->longitude_name());
+	char* fname = "/home/user/projects/elevation_map/web_server/backend/OUT.tif";
 	return fname;
 }
 
