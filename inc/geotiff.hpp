@@ -5,23 +5,12 @@
 #include <string>
 #include <gdal_priv.h>
 
-#if 0
-	#include <cpl_conv.h>
-	#include <gdalwarper.h>
-	#include <stdlib.h>
-#endif
-
 typedef float** PositionsMatrix;
 
 class Geotiff
 {
 public: 
 	Geotiff(const char* tiffname);
-#if 0
-	const char* GetFileName();
-	const char* GetProjection();
-	double GetNoDataValue();
-#endif
 	double* GetGeoTransform();
 	int* GetDimensions();
 	PositionsMatrix GetRasterBand(int z);

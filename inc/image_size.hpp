@@ -11,4 +11,5 @@ struct ImageSize
 	}
 };
 
+
 #endif // __IMAGE_SIZE_HPP__

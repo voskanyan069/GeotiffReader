@@ -11,4 +11,5 @@ struct PixelSize
 	}
 };
 
+
 #endif // __PIXEL_SIZE_HPP__

@@ -25,49 +25,20 @@ int* Geotiff::GetDimensions()
 	return dimensions;  
 } 
 
-#if 0
-const char* Geotiff::GetFileName()
-{
-	return filename; 
-}
-
-const char* Geotiff::GetProjection()
-{
-	return geotiffDataset->GetProjectionRef(); 
-} 
-
-double Geotiff::GetNoDataValue()
-{
-	return (double)geotiffDataset->GetRasterBand(1)->GetNoDataValue();  
-}
-
-#endif
-
 PositionsMatrix Geotiff::GetRasterBand(int z)
 {
 	PositionsMatrix bandLayer = new float*[NROWS];
 	switch( GDALGetRasterDataType(geotiffDataset->GetRasterBand(z)) )
 	{
-		case 0:
-			return NULL;
-		case 1:
-			return GetArray2D<unsigned char>(z,bandLayer); 
-		case 2:
-			return GetArray2D<unsigned short>(z,bandLayer);
-		case 3:
-			return GetArray2D<short>(z,bandLayer);
-		case 4:
-			return GetArray2D<unsigned int>(z,bandLayer);
-		case 5:
-			return GetArray2D<int>(z,bandLayer);
-		case 6:
-			return GetArray2D<float>(z,bandLayer);
-		case 7:
-			return GetArray2D<double>(z,bandLayer);
-		default:     
-			break;  
+		case  1: return GetArray2D<unsigned char>(z,bandLayer); 
+		case  2: return GetArray2D<unsigned short>(z,bandLayer);
+		case  3: return GetArray2D<short>(z,bandLayer);
+		case  4: return GetArray2D<unsigned int>(z,bandLayer);
+		case  5: return GetArray2D<int>(z,bandLayer);
+		case  6: return GetArray2D<float>(z,bandLayer);
+		case  7: return GetArray2D<double>(z,bandLayer);
+		default: return NULL;  
 	}
-	return NULL;  
 }
 
 template<typename T>
@@ -88,7 +59,6 @@ PositionsMatrix Geotiff::GetArray2D(int layerIndex, PositionsMatrix bandLayer)
 				<< std::endl;
 			exit(1);
 		}
-
 		bandLayer[row] = new float[NCOLS];
 		for(int col = 0; col < NCOLS; ++col)
 		{

@@ -1,9 +1,5 @@
 #include "geotiff_receiver.hpp"
 
-//	GeotiffReceiver(std::string save_path);
-//	void receive(std::string url, std::ofstream output_file);
-//	~GeotiffReceiver();
-
 GeotiffReceiver::GeotiffReceiver(const std::string &host,
 		const std::string &port, const ConnectionType &type,
 		const std::string &path)
