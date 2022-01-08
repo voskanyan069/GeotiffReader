@@ -39,6 +39,7 @@ void test(GeoPoint* points[2])
 
 	gr->receive(url_args, "asio_merged.tif");
 	de->read_file(save_path + "asio_merged.tif");
+	gr->close_connection("asio_merged.tif");
 	int alt = de->get_elevation(point);
 	std::cout << "Elevation at " << point->latitude()
 		<< ", " << point->longitude() << " is " << alt << std::endl;

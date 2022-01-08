@@ -2,9 +2,14 @@
 #define __GEOTIFF_RECEIVER_HPP__
 
 #include <iostream>
-#include <string>
 #include <fstream>
+#include <iomanip>
+#include <string>
+#include <sstream>
+#include <openssl/md5.h>
+
 #include <boost/asio.hpp>
+#include <boost/iostreams/device/mapped_file.hpp>
 
 #include "connection_type.hpp"
 
@@ -17,6 +22,7 @@ public:
 	GeotiffReceiver(const std::string &host, const std::string &port,
 			const ConnectionType &type, const std::string &path);
 	void receive(const std::string &url, const std::string &filename);
+	void close_connection(const std::string &filename);
 	~GeotiffReceiver();
 
 private:
@@ -35,6 +41,7 @@ private:
 	void send_request(const std::string &url);
 	void process_response();
 	void write_output(std::ofstream& output);
+	std::string calculate_checksum(const std::string &path);
 };
 
 #endif // __GEOTIFF_RECEIVER_HPP__

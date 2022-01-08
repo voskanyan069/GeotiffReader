@@ -45,7 +45,7 @@ void GeotiffReceiver::send_request(const std::string &url)
 	boost::asio::streambuf request;
     std::ostream request_stream(&request);
 
-    request_stream << "GET " << url << " HTTP/1.0\r\n";
+    request_stream << "GET " << url << " HTTP/1.1\r\n";
     request_stream << "Host: " << host_ << "\r\n";
     request_stream << "Accept: */*\r\n";
     request_stream << "Connection: close\r\n\r\n";
@@ -83,6 +83,31 @@ void GeotiffReceiver::write_output(std::ofstream& output)
     {
         output << response;
     }
+}
+
+std::string GeotiffReceiver::calculate_checksum(const std::string &path)
+{
+	unsigned char result[MD5_DIGEST_LENGTH];
+	boost::iostreams::mapped_file_source src(path);
+	MD5((unsigned char*)src.data(), src.size(), result);
+
+	std::ostringstream sout;
+	sout << std::hex << std::setfill('0');
+	for(auto c: result)
+	{
+		sout << std::setw(2) << (int)c;
+	}
+	return sout.str();
+}
+
+void GeotiffReceiver::close_connection(const std::string &filename)
+{
+	std::string path = save_path + "/" + filename;
+	std::string hash = calculate_checksum(path);
+	std::cout << "Checksum: " << hash << std::endl;
+	std::string url = "/api/v1/close_connection?checksum=" + hash;
+	std::cout << "Closing connection " << url << " ..." << std::endl;
+	send_request(url);
 }
 
 GeotiffReceiver::~GeotiffReceiver()

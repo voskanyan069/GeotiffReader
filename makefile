@@ -5,7 +5,7 @@ MKDIR_P=mkdir -p
 SRC=$(wildcard $(SRC_DIR)/*.cpp)
 INC=-I/usr/include -I$(INC_DIR) -I/usr/include/geotiff -I/usr/include/gdal
 OBJ=$(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
-LIB=-pthread -lboost_system -lgdal -lm
+LIB=-pthread -lboost_system -lboost_iostreams -lgdal -lcrypto -lm
 BIN=$(BIN_DIR)/main
 
 DIRS=$(OBJ_DIR) $(BIN_DIR)
