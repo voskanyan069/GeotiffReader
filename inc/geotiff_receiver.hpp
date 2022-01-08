@@ -28,6 +28,7 @@ public:
 private:
 	const std::string host_;
 	const std::string port_;
+	const std::string address_;
 	const std::string save_path;
 	const ConnectionType connection_type_;
 
