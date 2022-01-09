@@ -8,6 +8,7 @@
 #include <sstream>
 #include <openssl/md5.h>
 
+#include <nlohmann/json.hpp>
 #include <boost/asio.hpp>
 #include <boost/iostreams/device/mapped_file.hpp>
 
@@ -15,14 +16,15 @@
 
 namespace asio = boost::asio;
 using boost::asio::ip::tcp;
+using json = nlohmann::json;
 
 class GeotiffReceiver
 {
 public:
 	GeotiffReceiver(const std::string &host, const std::string &port,
 			const ConnectionType &type, const std::string &path);
-	void receive(const std::string &url, const std::string &filename);
-	void close_connection(const std::string &filename);
+	bool receive(const std::string &url, const std::string &filename);
+	bool close_connection(const std::string &filename);
 	~GeotiffReceiver();
 
 private:
@@ -41,7 +43,8 @@ private:
 	void create_connection();
 	void send_request(const std::string &url);
 	void process_response();
-	void write_output(std::ofstream& output);
+	void write_output(std::ofstream &output);
+	bool check_output(const std::string &path);
 	std::string calculate_checksum(const std::string &path);
 };
 

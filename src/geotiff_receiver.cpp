@@ -11,7 +11,7 @@ GeotiffReceiver::GeotiffReceiver(const std::string &host,
 {
 }
 
-void GeotiffReceiver::receive(const std::string &url,
+bool GeotiffReceiver::receive(const std::string &url,
 		const std::string &filename)
 {
 	std::string path = save_path + "/" + filename;
@@ -20,6 +20,8 @@ void GeotiffReceiver::receive(const std::string &url,
 	send_request(url);
 	process_response();
 	write_output(output_file);
+	bool rc = check_output(path);
+	return rc;
 }
 
 void GeotiffReceiver::create_connection()
@@ -67,7 +69,7 @@ void GeotiffReceiver::process_response()
     std::getline(*response_stream, status_message);
 }
 
-void GeotiffReceiver::write_output(std::ofstream& output)
+void GeotiffReceiver::write_output(std::ofstream &output)
 {
 	std::cout << "Downloading file..." << std::endl;
     boost::asio::read_until(*socket, *response, "\r\n\r\n");
@@ -81,8 +83,25 @@ void GeotiffReceiver::write_output(std::ofstream& output)
     }
     while (asio::read(*socket, *response, asio::transfer_at_least(1), *ec))
     {
-        output << response;
+		output << response;
     }
+	output.close();
+}
+
+bool GeotiffReceiver::check_output(const std::string &path)
+{
+	try
+	{
+		std::ifstream ifs(path);
+		json data = json::parse(ifs);
+		std::cout << "Server error: " << data["message"] << std::endl;
+		std::remove(path.c_str());
+		return 0;
+	}
+	catch (...)
+	{
+		return 1;
+	}
 }
 
 std::string GeotiffReceiver::calculate_checksum(const std::string &path)
@@ -100,7 +119,7 @@ std::string GeotiffReceiver::calculate_checksum(const std::string &path)
 	return sout.str();
 }
 
-void GeotiffReceiver::close_connection(const std::string &filename)
+bool GeotiffReceiver::close_connection(const std::string &filename)
 {
 	std::string path = save_path + "/" + filename;
 	std::string hash = calculate_checksum(path);
@@ -108,7 +127,8 @@ void GeotiffReceiver::close_connection(const std::string &filename)
 	std::string url = address_ + "/api/v1/close_connection?checksum=" + hash;
 	std::cout << "Closing connection..." << std::endl;
 	std::string cmd = "curl " + url + " > /dev/null 2>&1";
-	system(cmd.c_str());
+	int rc = system(cmd.c_str());
+	return rc;
 }
 
 GeotiffReceiver::~GeotiffReceiver()
