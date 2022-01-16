@@ -10,11 +10,13 @@
 
 #include <nlohmann/json.hpp>
 #include <boost/asio.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/iostreams/device/mapped_file.hpp>
 
 #include "connection_type.hpp"
 
 namespace asio = boost::asio;
+namespace fs = boost::filesystem;
 using boost::asio::ip::tcp;
 using json = nlohmann::json;
 
@@ -23,8 +25,7 @@ class GeotiffReceiver
 public:
 	GeotiffReceiver(const std::string &host, const std::string &port,
 			const ConnectionType &type, const std::string &path);
-	bool receive(const std::string &url, const std::string &filename);
-	bool close_connection(const std::string &filename);
+	bool receive(const std::string &args, const std::string &filename);
 	~GeotiffReceiver();
 
 private:
@@ -40,12 +41,14 @@ private:
 	boost::asio::streambuf* response;
 	std::istream* response_stream;
 
+	bool is_loaded(const std::string &path);
+	bool download(const std::string &url, const std::string &filename);
 	void create_connection();
 	void send_request(const std::string &url);
 	void process_response();
 	void write_output(std::ofstream &output);
 	bool check_output(const std::string &path);
-	std::string calculate_checksum(const std::string &path);
+	bool close_connection(const std::string &args);
 };
 
 #endif // __GEOTIFF_RECEIVER_HPP__

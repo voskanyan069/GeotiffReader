@@ -11,10 +11,38 @@ GeotiffReceiver::GeotiffReceiver(const std::string &host,
 {
 }
 
-bool GeotiffReceiver::receive(const std::string &url,
+bool GeotiffReceiver::receive(const std::string &args,
 		const std::string &filename)
 {
 	std::string path = save_path + "/" + filename;
+	if ( !is_loaded(path) )
+	{
+		int rc = download("/api/v1/polygon?" + args, filename);
+		close_connection(args);
+		return rc;
+	}
+	return 1;
+}
+
+bool GeotiffReceiver::is_loaded(const std::string &path)
+{
+	std::cout << "Looking for local data..." << std::endl;
+	bool is_exists = fs::exists(path);
+	if (is_exists)
+	{
+		std::cout << "Local data exist at " << path << std::endl;
+		return is_exists;
+	}
+	std::cout << "Local data not found" << std::endl;
+	return 0;
+}
+
+bool GeotiffReceiver::download(const std::string &url,
+		const std::string &filename)
+{
+	std::string path = save_path + "/" + filename;
+	std::string cmd = "mkdir -p " + save_path;
+	system(cmd.c_str());
 	std::ofstream output_file(path, std::ios::out | std::ios::binary);
 	create_connection();
 	send_request(url);
@@ -104,29 +132,11 @@ bool GeotiffReceiver::check_output(const std::string &path)
 	}
 }
 
-std::string GeotiffReceiver::calculate_checksum(const std::string &path)
+bool GeotiffReceiver::close_connection(const std::string &args)
 {
-	unsigned char result[MD5_DIGEST_LENGTH];
-	boost::iostreams::mapped_file_source src(path);
-	MD5((unsigned char*)src.data(), src.size(), result);
-
-	std::ostringstream sout;
-	sout << std::hex << std::setfill('0');
-	for(auto c: result)
-	{
-		sout << std::setw(2) << (int)c;
-	}
-	return sout.str();
-}
-
-bool GeotiffReceiver::close_connection(const std::string &filename)
-{
-	std::string path = save_path + "/" + filename;
-	std::string hash = calculate_checksum(path);
-	std::cout << "Checksum: " << hash << std::endl;
-	std::string url = address_ + "/api/v1/close_connection?checksum=" + hash;
+	std::string url = address_ + "/api/v1/close_connection?" + args;
 	std::cout << "Closing connection..." << std::endl;
-	std::string cmd = "curl " + url + " > /dev/null 2>&1";
+	std::string cmd = "curl \"" + url + "\" > /dev/null 2>&1";
 	int rc = system(cmd.c_str());
 	return rc;
 }

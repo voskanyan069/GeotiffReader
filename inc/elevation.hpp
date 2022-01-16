@@ -15,7 +15,8 @@ public:
 	DigitalElevation();
 	int get_elevation(GeoPoint* point);
 	void read_file(std::string filename);
-	std::string calculate_filename(GeoPoint* point);
+	std::string get_filename(GeoPoint* point);
+	std::string get_filename(GeoPoint** points);
 	~DigitalElevation();
 
 private:
@@ -24,6 +25,7 @@ private:
 	GeoPoint* area_corner;
 	ImageSize* image_size;
 
+	std::string calculate_filename(GeoPoint* point);
 	int elevation_from_pixel(Pixel* pixel);
 	Pixel* calculate_pixel(GeoPoint* point);
 	void calculate_lr_corner(double x, double y);

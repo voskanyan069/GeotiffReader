@@ -4,18 +4,17 @@ DigitalElevation::DigitalElevation()
 {
 }
 
-std::string DigitalElevation::calculate_filename(GeoPoint *point)
+std::string DigitalElevation::get_filename(GeoPoint* point)
 {
-    char fname[12];
-    char vertical_hemisphere = 'N';
-    char horizontal_hemisphere = 'E';
-	if (point->latitude() < 0) vertical_hemisphere = 'S';
-	if (point->longitude() < 0) horizontal_hemisphere = 'W';
-	sprintf(fname, "%c%02.0f%c%03.0f.tif",
-			vertical_hemisphere, point->latitude_name(),
-			horizontal_hemisphere, point->longitude_name());
-	std::cout << fname << std::endl;
-	return fname;
+	std::string filename = calculate_filename(point);
+	return filename;
+}
+
+std::string DigitalElevation::get_filename(GeoPoint** points)
+{
+	std::string filename = calculate_filename(points[0]) + "_";
+	filename += calculate_filename(points[1]) + ".tif";
+	return filename;
 }
 
 void DigitalElevation::read_file(std::string filename)
@@ -62,6 +61,19 @@ Pixel* DigitalElevation::calculate_pixel(GeoPoint* point)
 int DigitalElevation::elevation_from_pixel(Pixel* pixel)
 {
 	return data[pixel->row][pixel->col];
+}
+
+std::string DigitalElevation::calculate_filename(GeoPoint* point)
+{
+    char fname[8];
+    char vertical_hemisphere = 'N';
+    char horizontal_hemisphere = 'E';
+	if (point->latitude() < 0) vertical_hemisphere = 'S';
+	if (point->longitude() < 0) horizontal_hemisphere = 'W';
+	sprintf(fname, "%c%02.0f%c%03.0f",
+			vertical_hemisphere, point->latitude_name(),
+			horizontal_hemisphere, point->longitude_name());
+	return fname;
 }
 
 DigitalElevation::~DigitalElevation()
