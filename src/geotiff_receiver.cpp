@@ -42,10 +42,12 @@ bool GeotiffReceiver::download(const std::string &url,
 {
 	std::string path = save_path + "/" + filename;
 	std::string cmd = "mkdir -p " + save_path;
+	create_connection();
+	bool success = send_request(url);
+	if ( !success )
+		return 0;
 	system(cmd.c_str());
 	std::ofstream output_file(path, std::ios::out | std::ios::binary);
-	create_connection();
-	send_request(url);
 	process_response();
 	write_output(output_file);
 	bool rc = check_output(path);
@@ -69,7 +71,7 @@ void GeotiffReceiver::create_connection()
 	}
 }
 
-void GeotiffReceiver::send_request(const std::string &url)
+bool GeotiffReceiver::send_request(const std::string &url)
 {
 	std::cout << "Sending GET request..." << std::endl;
 	boost::asio::streambuf request;
@@ -80,7 +82,16 @@ void GeotiffReceiver::send_request(const std::string &url)
     request_stream << "Accept: */*\r\n";
     request_stream << "Connection: close\r\n\r\n";
 
-    boost::asio::write(*socket, request);
+	try
+	{
+    	boost::asio::write(*socket, request);
+	}
+	catch (boost::wrapexcept<boost::system::system_error> ec)
+	{
+		std::cout << "Error: " << ec.what() << std::endl;
+		return 0;
+	}
+	return 1;
 }
 
 void GeotiffReceiver::process_response()

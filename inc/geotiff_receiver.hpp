@@ -44,7 +44,7 @@ private:
 	bool is_loaded(const std::string &path);
 	bool download(const std::string &url, const std::string &filename);
 	void create_connection();
-	void send_request(const std::string &url);
+	bool send_request(const std::string &url);
 	void process_response();
 	void write_output(std::ofstream &output);
 	bool check_output(const std::string &path);
