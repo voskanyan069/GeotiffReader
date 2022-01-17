@@ -38,6 +38,32 @@ float GeoPoint::longitude_name()
 	return fabs(floorf(lon_));
 }
 
+GeoPoint* GeoPoint::as_int()
+{
+	return new GeoPoint(this->latitude_name(), this->longitude_name());
+}
+
+std::string GeoPoint::to_string()
+{
+	std::string value = std::to_string(this->latitude()) + ","
+		+ std::to_string(this->longitude());
+	return value;
+}
+
+bool operator<(const GeoPoint &l, const GeoPoint &r)
+{
+	bool lat = floorf(l.lat_) < floorf(r.lat_);
+	bool lon = floorf(l.lon_) < floorf(r.lon_);
+	return lat || lon;
+}
+
+bool operator>(const GeoPoint &l, const GeoPoint &r)
+{
+	bool lat = floorf(l.lat_) > floorf(r.lat_);
+	bool lon = floorf(l.lon_) > floorf(r.lon_);
+	return lat || lon;
+}
+
 GeoPoint::~GeoPoint()
 {
 }

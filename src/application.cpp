@@ -30,7 +30,7 @@ int Application::parse_options()
 void Application::run_tests()
 {
     GeoPoint* pt1 = new GeoPoint(40.7990, 44.5376);
-    GeoPoint* pt2 = new GeoPoint(41.7990, 45.5376);
+    GeoPoint* pt2 = new GeoPoint(42.7990, 46.5376);
     GeoPoint* points[2] = {pt1, pt2};
     receiver_test(points);
     return;
@@ -48,12 +48,15 @@ void Application::elevation_test()
 
 void Application::receiver_test(GeoPoint* points[2])
 {
-	std::string sw = std::to_string(points[0]->latitude()) + "," +
-        std::to_string(points[0]->longitude());
-    std::string ne = std::to_string(points[1]->latitude()) + "," +
-        std::to_string(points[1]->longitude());
+	std::string sw = points[0]->to_string();
+	std::string ne = points[1]->to_string();
     std::string url_args = "sw=" + sw + "&ne=" + ne;
-    GeoPoint* point = new GeoPoint(41.7990, 46.9376);
+    GeoPoint* point = new GeoPoint(41.7990, 45.5376);
+	if (!dem->is_valid_points(points))
+	{
+		std::cout << "Invalid points" << std::endl;
+		return;
+	}
     std::string filename = dem->get_filename(points);
 	GeotiffReceiver* gr = new GeotiffReceiver("localhost", "6767",
 			ConnectionType::LOCAL, path);
@@ -63,8 +66,16 @@ void Application::receiver_test(GeoPoint* points[2])
     {
         dem->read_file(path + "/" + filename);
         int alt = dem->get_elevation(point);
-        std::cout << "Elevation at " << point->latitude()
-            << ", " << point->longitude() << " is " << alt << std::endl;
+		if (alt == -1)
+		{
+			std::cout << point->latitude() <<  ", " << point->longitude()
+				<< " point does not exist in " << filename << std::endl;
+		}
+		else
+		{
+			std::cout << "Elevation at " << point->latitude()
+				<< ", " << point->longitude() << " is " << alt << std::endl;
+		}
     }
 }
 

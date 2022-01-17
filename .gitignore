@@ -1,5 +1,7 @@
 obj/*
+lib/*
 bin/*
 data/*
 */.*.swp
 */.*.swo
+tags

@@ -15,7 +15,7 @@ bool GeotiffReceiver::receive(const std::string &args,
 		const std::string &filename)
 {
 	std::string path = save_path + "/" + filename;
-	if ( !is_loaded(path) )
+	if (!is_loaded(path))
 	{
 		int rc = download("/api/v1/polygon?" + args, filename);
 		close_connection(args);
@@ -26,7 +26,8 @@ bool GeotiffReceiver::receive(const std::string &args,
 
 bool GeotiffReceiver::is_loaded(const std::string &path)
 {
-	std::cout << "Looking for local data..." << std::endl;
+	std::cout << "Looking for local data at "
+		<< save_path << "..." << std::endl;
 	bool is_exists = fs::exists(path);
 	if (is_exists)
 	{
@@ -44,7 +45,7 @@ bool GeotiffReceiver::download(const std::string &url,
 	std::string cmd = "mkdir -p " + save_path;
 	create_connection();
 	bool success = send_request(url);
-	if ( !success )
+	if (!success)
 		return 0;
 	system(cmd.c_str());
 	std::ofstream output_file(path, std::ios::out | std::ios::binary);

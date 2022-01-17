@@ -2,6 +2,8 @@
 #define __GEO_POINT_HPP__
 
 #include <cmath>
+#include <string>
+#include <iostream>
 
 struct GeoPoint
 {
@@ -14,7 +16,12 @@ public:
 	float longitude();
 	float latitude_name();
 	float longitude_name();
+	std::string to_string();
+	GeoPoint* as_int();
 	~GeoPoint();
+
+	friend bool operator<(const GeoPoint &l, const GeoPoint &r);
+	friend bool operator>(const GeoPoint &l, const GeoPoint &r);
 
 private:
 	float lat_;

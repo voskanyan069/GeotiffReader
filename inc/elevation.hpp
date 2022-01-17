@@ -14,6 +14,7 @@ class DigitalElevation
 public:
 	DigitalElevation();
 	int get_elevation(GeoPoint* point);
+	bool is_valid_points(GeoPoint** points);
 	void read_file(std::string filename);
 	std::string get_filename(GeoPoint* point);
 	std::string get_filename(GeoPoint** points);
@@ -22,10 +23,13 @@ public:
 private:
 	PositionsMatrix data;
 	PixelSize* geotransform;
-	GeoPoint* area_corner;
 	ImageSize* image_size;
+	GeoPoint* area_corner;
+	GeoPoint* min_point;
+	GeoPoint* max_point;
 
 	std::string calculate_filename(GeoPoint* point);
+	bool is_point_exist(GeoPoint* point);
 	int elevation_from_pixel(Pixel* pixel);
 	Pixel* calculate_pixel(GeoPoint* point);
 	void calculate_lr_corner(double x, double y);

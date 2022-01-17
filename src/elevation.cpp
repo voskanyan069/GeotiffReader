@@ -7,6 +7,7 @@ DigitalElevation::DigitalElevation()
 std::string DigitalElevation::get_filename(GeoPoint* point)
 {
 	std::string filename = calculate_filename(point);
+	min_point = max_point = point->as_int();
 	return filename;
 }
 
@@ -14,6 +15,8 @@ std::string DigitalElevation::get_filename(GeoPoint** points)
 {
 	std::string filename = calculate_filename(points[0]) + "_";
 	filename += calculate_filename(points[1]) + ".tif";
+	min_point = points[0]->as_int();
+	max_point = points[1]->as_int();
 	return filename;
 }
 
@@ -28,6 +31,27 @@ void DigitalElevation::read_file(std::string filename)
 	calculate_lr_corner(gt[0], gt[3]);
 }
 
+bool DigitalElevation::is_valid_points(GeoPoint** points)
+{
+	GeoPoint* sw = points[0];
+	GeoPoint* ne = points[1];
+	if (sw->latitude_name() > ne->latitude_name() ||
+		sw->longitude_name() > ne->longitude_name())
+	{
+		return 0;
+	}
+	return 1;
+}
+
+bool DigitalElevation::is_point_exist(GeoPoint* point)
+{
+	if (*point > *max_point || *point < *min_point)
+	{
+		return 0;
+	}
+	return 1;
+}
+
 void DigitalElevation::calculate_lr_corner(double x, double y)
 {
 	double lat = y - (image_size->height * geotransform->y);
@@ -37,6 +61,8 @@ void DigitalElevation::calculate_lr_corner(double x, double y)
 
 int DigitalElevation::get_elevation(GeoPoint* point)
 {
+	if (!is_point_exist(point))
+		return -1;
 	Pixel* pixel = calculate_pixel(point);
 	int elev = elevation_from_pixel(pixel);
 	return elev;

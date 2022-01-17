@@ -3,28 +3,45 @@ CFLAGS=-g
 RM=rm -rf
 MKDIR_P=mkdir -p
 SRC=$(wildcard $(SRC_DIR)/*.cpp)
+MAIN_SRC=$(SRC_DIR)/main.cpp
+TEST_SRC=$(TEST_DIR)/test.cpp
 INC=-I$(INC_DIR) -I/usr/include/geotiff -I/usr/include/gdal
 OBJ=$(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
-LIB=-lboost_system -lboost_filesystem -lboost_program_options \
-	-lboost_iostreams -pthread -lgdal -lcrypto -lm
+LIB=$(ELEVATION_LIB) -lboost_system -lboost_filesystem \
+	-lboost_program_options -lboost_iostreams -pthread -lgdal -lm 
+ELEVATION_LIB=$(LIB_DIR)/libelevation.a
+TEST_BIN=$(BIN_DIR)/test
 BIN=$(BIN_DIR)/main
 
-DIRS=$(OBJ_DIR) $(BIN_DIR)
+DIRS=$(OBJ_DIR) $(LIB_DIR) $(BIN_DIR)
 SRC_DIR=./src
 INC_DIR=./inc
+TEST_DIR=./test
 OBJ_DIR=./obj
+LIB_DIR=./lib
 BIN_DIR=./bin
 
-mod: $(DIRS) $(BIN)
+TEMP_OBJ:=$(OBJ)
+OBJ=$(filter-out ./obj/main.o, $(TEMP_OBJ)) 
 
-$(BIN): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) $(INC) $(LIB) -o $(BIN)
+mod: $(DIRS) $(BIN)
+tests: $(DIRS) $(TEST_BIN)
+
+$(BIN): $(ELEVATION_LIB)
+	$(CC) $(CFLAGS) $(MAIN_SRC) $(INC) $(LIB) -o $(BIN)
+
+$(TEST_BIN): $(TEST_SRC) $(ELEVATION_LIB)
+	$(CC) $(CFLAGS) $(TEST_SRC) $(INC) $(LIB) -lgtest -o $(TEST_BIN)
+
+$(ELEVATION_LIB): $(OBJ)
+	ar rvs $(ELEVATION_LIB) $(OBJ)
 
 $(OBJ): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 	$(CC) $(CFLAGS) $(INC) -c $< -o $@
 
 $(DIRS):
 	$(MKDIR_P) $(OBJ_DIR)
+	$(MKDIR_P) $(LIB_DIR)
 	$(MKDIR_P) $(BIN_DIR)
 
 .PHONY: tags
@@ -33,6 +50,4 @@ tags:
 
 .PHONY: clean
 clean:
-	$(RM) $(OBJ)
-	$(RM) $(BIN)
 	$(RM) $(DIRS)
