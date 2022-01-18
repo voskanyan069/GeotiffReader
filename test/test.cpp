@@ -5,7 +5,7 @@
 
 #include <boost/process.hpp>
 #include <boost/process/async.hpp>
-#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 #include <gtest/gtest.h>
 
 #include "geo_point.hpp"
@@ -13,9 +13,21 @@
 #include "connection_type.hpp"
 #include "geotiff_receiver.hpp"
 
-namespace bp = boost::process;
+#define RANDOM_TESTS_COUNT 100
+#define PRINT_COMPARE(point, l, r, idx) \
+	std::cout << "[" << idx << "]. " << point->to_string() \
+			  << " = " << l << " <=> " << r << std::endl;
+#define RECEIVE_DATA(x1, y1, x2, y2) \
+	GeoPoint* points[2] = { new GeoPoint(x1, y1), new GeoPoint(x2, y2) }; \
+	std::string url_args = init_request(points); \
+	std::string filename = dem->get_filename(points); \
+	if (gr->receive(url_args, filename)) \
+	{ \
+		dem->read_file(path + filename);
+#define CLOSE }
 
-typedef std::vector<std::string> Argv;
+namespace bp = boost::process;
+typedef std::vector<std::string> Strings;
 
 std::string path = "./data/";
 std::string test_path = "./test/scripts/";
@@ -25,7 +37,7 @@ GeotiffReceiver* gr = new GeotiffReceiver("localhost", "6767",
 		ConnectionType::LOCAL, path);
 DigitalElevation* dem = new DigitalElevation();
 
-std::string execute_command(std::string &cmd, Argv argv)
+std::string execute_command(std::string &cmd, Strings argv)
 {
 	std::string rv;
 	bp::ipstream output;
@@ -51,6 +63,39 @@ std::string init_request(GeoPoint* points[2])
     std::string url_args = "sw=" + points[0]->to_string();
 	url_args += "&ne=" + points[1]->to_string();
     return url_args;
+}
+
+GeoPoint** collect_data()
+{
+	GeoPoint** points = new GeoPoint*[RANDOM_TESTS_COUNT];
+	GeoPoint* pt = new GeoPoint();
+	for (int i = 0; i < RANDOM_TESTS_COUNT; ++i)
+	{
+		pt->set_latitude(get_random(38, 43));
+		pt->set_longitude(get_random(43, 48));
+		points[i] = new GeoPoint(*pt);
+	}
+	return points;
+}
+
+std::string points_to_string(GeoPoint** points)
+{
+	std::string content = (*points)->to_string();
+	for (int i = 1; i < RANDOM_TESTS_COUNT; ++i)
+	{
+		if (points[i])
+		{
+			content += "," + points[i]->to_string();
+		}
+	}
+	return content;
+}
+
+Strings split_string(const std::string &data, const std::string &character)
+{
+	Strings values;
+	boost::split(values, data, boost::is_any_of(character));
+	return values;
 }
 
 TEST(DownloadTest, Positive)
@@ -137,46 +182,40 @@ TEST(ReadTest, Negative)
 
 TEST(ElevationTest, Random)
 {
-	GeoPoint* points[2] = { new GeoPoint(38, 43), new GeoPoint(42, 47) };
-	GeoPoint* pt = new GeoPoint();
-	std::string url_args = init_request(points);
-	std::string filename = dem->get_filename(points);
-	if (gr->receive(url_args, filename))
-	{
-		dem->read_file(path + filename);
-		for (int i = 0; i < 100; ++i)
+	RECEIVE_DATA(38, 43, 42, 47)
+		GeoPoint* pt = new GeoPoint();
+		for (int i = 0; i < RANDOM_TESTS_COUNT; ++i)
 		{
 			pt->set_latitude(get_random(38, 43));
 			pt->set_longitude(get_random(43, 48));
-			std::string val = execute_command(reader_py, Argv{pt->to_string()});
+			std::string val = execute_command(reader_py,
+					Strings{pt->to_string()});
 			std::string alt = std::to_string(dem->get_elevation(pt));
-			std::cout << i << "). " << pt->to_string() << " = " << val
-				<< " <=> " << alt << std::endl;
+			PRINT_COMPARE(pt, val, alt, i);
 			EXPECT_EQ(val, alt);
 		}
-	}
+	CLOSE
 }
 
 TEST(AirmapCompareTest, Random)
 {
-	GeoPoint* points[2] = { new GeoPoint(38, 43), new GeoPoint(42, 47) };
-	GeoPoint* pt = new GeoPoint();
-	std::string url_args = init_request(points);
-	std::string filename = dem->get_filename(points);
-	if (gr->receive(url_args, filename))
-	{
-		dem->read_file(path + filename);
-		for (int i = 0; i < 100; ++i)
+	RECEIVE_DATA(38, 43, 42, 47)
+		GeoPoint** point_array = collect_data();
+		std::string array = points_to_string(point_array);
+		std::string elevations = execute_command(airmap_py, Strings{array});
+		Strings values = split_string(elevations, " ");
+		GeoPoint* pt = new GeoPoint();
+		std::string alt;
+		for (int i = 0; i < RANDOM_TESTS_COUNT; ++i)
 		{
-			pt->set_latitude(get_random(38, 43));
-			pt->set_longitude(get_random(43, 48));
-			std::string val = execute_command(airmap_py, Argv{pt->to_string()});
-			std::string alt = std::to_string(dem->get_elevation(pt));
-			std::cout << i << "). " << pt->to_string() << " = " << val
-				<< " <=> " << alt << std::endl;
-			EXPECT_EQ(val, alt);
+			pt = point_array[i];
+			alt = std::to_string(dem->get_elevation(pt));
+			if (values[i] == "None")
+				continue;
+			PRINT_COMPARE(pt, values[i], alt, i)
+			EXPECT_EQ(values[i], alt);
 		}
-	}
+	CLOSE
 }
 
 int main(int argc, char* argv[])

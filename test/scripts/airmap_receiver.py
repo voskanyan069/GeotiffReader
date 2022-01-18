@@ -4,12 +4,12 @@ import sys
 import requests
 from geopoint import GeoPoint
 
-def main(point):
+def main(points):
     url = f'https://api.airmap.com/elevation/v1/ele?points={point}'
     req = requests.get(url)
     data = req.json()
     if data['data']:
-        print(data['data'][0])
+        print(*data['data'])
 
 if __name__ == '__main__':
     point = sys.argv[1]
