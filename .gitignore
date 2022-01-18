@@ -2,6 +2,7 @@ obj/*
 lib/*
 bin/*
 data/*
+test/scripts/__pycache__/*
 */.*.swp
 */.*.swo
 tags

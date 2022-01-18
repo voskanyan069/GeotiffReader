@@ -3,6 +3,7 @@
 import os
 import sys
 import math
+from geopoint import GeoPoint
 from gmalthgtparser import HgtParser
 
 RES_PATH = "/home/user/projects/elevation_map/resources"

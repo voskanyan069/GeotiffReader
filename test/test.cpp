@@ -18,12 +18,14 @@ namespace bp = boost::process;
 typedef std::vector<std::string> Argv;
 
 std::string path = "./data/";
-const char* script = "./test/position_reader.py";
+std::string test_path = "./test/scripts/";
+std::string reader_py = test_path + "position_reader.py";
+std::string airmap_py = test_path + "airmap_receiver.py";
 GeotiffReceiver* gr = new GeotiffReceiver("localhost", "6767",
 		ConnectionType::LOCAL, path);
 DigitalElevation* dem = new DigitalElevation();
 
-std::string execute_command(const char* cmd, Argv argv)
+std::string execute_command(std::string &cmd, Argv argv)
 {
 	std::string rv;
 	bp::ipstream output;
@@ -99,7 +101,7 @@ TEST(ReadTest, Positive)
 		std::string filename = dem->get_filename(pts);
 		if (gr->receive(url_args, filename))
 		{
-			dem->read_file(path + "/" + filename);
+			dem->read_file(path + filename);
 			for (int j = 0; j < 4; ++j)
 			{
 				int alt = dem->get_elevation(test_points[j]);
@@ -124,7 +126,7 @@ TEST(ReadTest, Negative)
 		std::string filename = dem->get_filename(pts);
 		if (gr->receive(url_args, filename))
 		{
-			dem->read_file(path + "/" + filename);
+			dem->read_file(path + filename);
 			for (int i = 0; i < 4; ++i)
 			{
 				ASSERT_EQ(0, dem->is_point_exist(test_points[i]));
@@ -137,17 +139,38 @@ TEST(ElevationTest, Random)
 {
 	GeoPoint* points[2] = { new GeoPoint(38, 43), new GeoPoint(42, 47) };
 	GeoPoint* pt = new GeoPoint();
-	std::string url_args = "sw=" + points[0]->to_string() +
-		"&ne=" + points[1]->to_string();
+	std::string url_args = init_request(points);
 	std::string filename = dem->get_filename(points);
 	if (gr->receive(url_args, filename))
 	{
-		dem->read_file(path + "/" + filename);
+		dem->read_file(path + filename);
 		for (int i = 0; i < 100; ++i)
 		{
 			pt->set_latitude(get_random(38, 43));
 			pt->set_longitude(get_random(43, 48));
-			std::string val = execute_command(script, Argv{pt->to_string()});
+			std::string val = execute_command(reader_py, Argv{pt->to_string()});
+			std::string alt = std::to_string(dem->get_elevation(pt));
+			std::cout << i << "). " << pt->to_string() << " = " << val
+				<< " <=> " << alt << std::endl;
+			EXPECT_EQ(val, alt);
+		}
+	}
+}
+
+TEST(AirmapCompareTest, Random)
+{
+	GeoPoint* points[2] = { new GeoPoint(38, 43), new GeoPoint(42, 47) };
+	GeoPoint* pt = new GeoPoint();
+	std::string url_args = init_request(points);
+	std::string filename = dem->get_filename(points);
+	if (gr->receive(url_args, filename))
+	{
+		dem->read_file(path + filename);
+		for (int i = 0; i < 100; ++i)
+		{
+			pt->set_latitude(get_random(38, 43));
+			pt->set_longitude(get_random(43, 48));
+			std::string val = execute_command(airmap_py, Argv{pt->to_string()});
 			std::string alt = std::to_string(dem->get_elevation(pt));
 			std::cout << i << "). " << pt->to_string() << " = " << val
 				<< " <=> " << alt << std::endl;
