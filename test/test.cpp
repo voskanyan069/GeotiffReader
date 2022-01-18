@@ -149,9 +149,9 @@ TEST(ElevationTest, Random)
 			pt->set_longitude(get_random(43, 48));
 			std::string val = execute_command(script, Argv{pt->to_string()});
 			std::string alt = std::to_string(dem->get_elevation(pt));
-			std::cout << pt->to_string() << " = " << val
+			std::cout << i << "). " << pt->to_string() << " = " << val
 				<< " <=> " << alt << std::endl;
-			ASSERT_EQ(val, alt);
+			EXPECT_EQ(val, alt);
 		}
 	}
 }
