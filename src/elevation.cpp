@@ -61,8 +61,6 @@ void DigitalElevation::calculate_lr_corner(double x, double y)
 
 int DigitalElevation::get_elevation(GeoPoint* point)
 {
-	if (!is_point_exist(point))
-		return -1;
 	Pixel* pixel = calculate_pixel(point);
 	int elev = elevation_from_pixel(pixel);
 	return elev;

@@ -17,18 +17,21 @@ class Application
 public:
 	Application(int argc, char* argv[]);
 	int parse_options();
-	void run_tests();
+	void execute();
 	~Application();
 
 private:
 	int argc;
 	char** argv;
+	std::string sw;
+	std::string ne;
 	std::string path;
-	GeotiffReceiver* gr;
+	GeotiffReceiver* receiver;
 	DigitalElevation* dem;
 
-	void elevation_test();
-	void receiver_test(GeoPoint* points[2]);
+	std::string init_request(GeoPoint* points[2]);
+	void receiver_test(std::string url, GeoPoint* points[2]);
+	void elevation_test(std::string path, GeoPoint* point);
 };
 
 #endif // __APPLICAITON__

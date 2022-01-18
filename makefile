@@ -5,6 +5,7 @@ MKDIR_P=mkdir -p
 SRC=$(wildcard $(SRC_DIR)/*.cpp)
 MAIN_SRC=$(SRC_DIR)/main.cpp
 TEST_SRC=$(TEST_DIR)/test.cpp
+INCLUDES=$(wildcard $(INC_DIR)/*.hpp)
 INC=-I$(INC_DIR) -I/usr/include/geotiff -I/usr/include/gdal
 OBJ=$(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 LIB=$(ELEVATION_LIB) -lboost_system -lboost_filesystem \
@@ -27,13 +28,13 @@ OBJ=$(filter-out ./obj/main.o, $(TEMP_OBJ))
 mod: $(DIRS) $(BIN)
 tests: $(DIRS) $(TEST_BIN)
 
-$(BIN): $(ELEVATION_LIB)
+$(BIN): $(MAIN_SRC) $(ELEVATION_LIB)
 	$(CC) $(CFLAGS) $(MAIN_SRC) $(INC) $(LIB) -o $(BIN)
 
 $(TEST_BIN): $(TEST_SRC) $(ELEVATION_LIB)
 	$(CC) $(CFLAGS) $(TEST_SRC) $(INC) $(LIB) -lgtest -o $(TEST_BIN)
 
-$(ELEVATION_LIB): $(OBJ)
+$(ELEVATION_LIB): $(OBJ) $(INCLUDES)
 	ar rvs $(ELEVATION_LIB) $(OBJ)
 
 $(OBJ): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
