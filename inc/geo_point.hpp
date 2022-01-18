@@ -17,7 +17,7 @@ public:
 	float latitude_name();
 	float longitude_name();
 	std::string to_string();
-	GeoPoint* as_int();
+	GeoPoint *as_int();
 	~GeoPoint();
 
 	friend bool operator<(const GeoPoint &l, const GeoPoint &r);

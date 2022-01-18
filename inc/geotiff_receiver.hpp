@@ -35,11 +35,11 @@ private:
 	const std::string save_path;
 	const ConnectionType connection_type_;
 
-	boost::system::error_code* ec;
-	boost::asio::io_service* io_service;
-	tcp::socket* socket;
-	boost::asio::streambuf* response;
-	std::istream* response_stream;
+	boost::system::error_code *ec;
+	boost::asio::io_service *io_service;
+	tcp::socket *socket;
+	boost::asio::streambuf *response;
+	std::istream *response_stream;
 
 	bool is_loaded(const std::string &path);
 	bool download(const std::string &url, const std::string &filename);

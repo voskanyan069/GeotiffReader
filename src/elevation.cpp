@@ -4,14 +4,14 @@ DigitalElevation::DigitalElevation()
 {
 }
 
-std::string DigitalElevation::get_filename(GeoPoint* point)
+std::string DigitalElevation::get_filename(GeoPoint *point)
 {
 	std::string filename = calculate_filename(point);
 	min_point = max_point = point->as_int();
 	return filename;
 }
 
-std::string DigitalElevation::get_filename(GeoPoint** points)
+std::string DigitalElevation::get_filename(GeoPoint **points)
 {
 	std::string filename = calculate_filename(points[0]) + "_";
 	filename += calculate_filename(points[1]) + ".tif";
@@ -22,51 +22,44 @@ std::string DigitalElevation::get_filename(GeoPoint** points)
 
 void DigitalElevation::read_file(std::string filename)
 {
-	Geotiff* file = new Geotiff(filename.c_str());
-	data = file->GetRasterBand(1);
-	double* gt = file->GetGeoTransform();
-	int* dm = file->GetDimensions();
+	Geotiff *file = new Geotiff(filename.c_str());
+	data = file->get_raster_band(1);
+	double *gt = file->get_geotransform();
+	int *dm = file->get_dimensions();
 	geotransform = new PixelSize(gt[1], gt[5]);
 	image_size = new ImageSize(dm[0], dm[1]);
 	calculate_lr_corner(gt[0], gt[3]);
 }
 
-bool DigitalElevation::is_valid_points(GeoPoint** points)
+bool DigitalElevation::is_valid_points(GeoPoint **points)
 {
-	GeoPoint* sw = points[0];
-	GeoPoint* ne = points[1];
-	if (sw->latitude_name() > ne->latitude_name() ||
-		sw->longitude_name() > ne->longitude_name())
-	{
-		return 0;
-	}
-	return 1;
+	GeoPoint *sw = points[0];
+	GeoPoint *ne = points[1];
+	bool lat = sw->latitude_name() > ne->latitude_name();
+	bool lon = sw->longitude_name() > ne->longitude_name();
+	return !(lat || lon);
 }
 
-bool DigitalElevation::is_point_exist(GeoPoint* point)
+bool DigitalElevation::is_point_exist(GeoPoint *point)
 {
-	if (*point > *max_point || *point < *min_point)
-	{
-		return 0;
-	}
-	return 1;
+	return !(*point > *max_point || *point < *min_point);
 }
 
 void DigitalElevation::calculate_lr_corner(double x, double y)
 {
-	double lat = y - (image_size->height * geotransform->y);
-	double lon = x + (image_size->width * geotransform->x);
+	double lat = y - (image_size->height  *geotransform->y);
+	double lon = x + (image_size->width  *geotransform->x);
 	area_corner = new GeoPoint(lat, lon);
 }
 
-int DigitalElevation::get_elevation(GeoPoint* point)
+int DigitalElevation::get_elevation(GeoPoint *point)
 {
-	Pixel* pixel = calculate_pixel(point);
+	Pixel *pixel = calculate_pixel(point);
 	int elev = elevation_from_pixel(pixel);
 	return elev;
 }
 
-Pixel* DigitalElevation::calculate_pixel(GeoPoint* point)
+Pixel *DigitalElevation::calculate_pixel(GeoPoint *point)
 {
 	double lat = point->latitude();
 	double lon = point->longitude();
@@ -78,16 +71,16 @@ Pixel* DigitalElevation::calculate_pixel(GeoPoint* point)
 	double y_pixel = geotransform->y;
 	int row = w - (double)((lat-x) / x_pixel);
 	int col = h - (double)((y-lon) / y_pixel);
-	Pixel* p = new Pixel(row, col);
+	Pixel *p = new Pixel(row, col);
 	return p;
 }
 
-int DigitalElevation::elevation_from_pixel(Pixel* pixel)
+int DigitalElevation::elevation_from_pixel(Pixel *pixel)
 {
 	return data[pixel->row][pixel->col];
 }
 
-std::string DigitalElevation::calculate_filename(GeoPoint* point)
+std::string DigitalElevation::calculate_filename(GeoPoint *point)
 {
     char fname[8];
     char vertical_hemisphere = 'N';

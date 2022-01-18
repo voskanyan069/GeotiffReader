@@ -15,13 +15,11 @@ bool GeotiffReceiver::receive(const std::string &args,
 		const std::string &filename)
 {
 	std::string path = save_path + "/" + filename;
-	if (!is_loaded(path))
-	{
-		int rc = download("/api/v1/polygon?" + args, filename);
-		close_connection(args);
-		return rc;
-	}
-	return 1;
+	if (is_loaded(path))
+		return 1;
+	int rc = download("/api/v1/polygon?" + args, filename);
+	close_connection(args);
+	return rc;
 }
 
 bool GeotiffReceiver::is_loaded(const std::string &path)
@@ -29,8 +27,7 @@ bool GeotiffReceiver::is_loaded(const std::string &path)
 	std::cout << "Looking for local data at "
 		<< save_path << "..." << std::endl;
 	bool is_exists = fs::exists(path);
-	if (is_exists)
-	{
+	if (is_exists) {
 		std::cout << "Local data exist at " << path << std::endl;
 		return is_exists;
 	}
@@ -65,8 +62,7 @@ void GeotiffReceiver::create_connection()
     tcp::resolver::iterator end;
 	socket = new tcp::socket(*io_service);
 	ec = new boost::system::error_code(asio::error::host_not_found);
-    while (*ec && endpoint_iterator != end)
-    {
+    while (*ec && endpoint_iterator != end) {
         socket->close();
         socket->connect(*endpoint_iterator++, *ec);
 	}
@@ -83,12 +79,9 @@ bool GeotiffReceiver::send_request(const std::string &url)
     request_stream << "Accept: */*\r\n";
     request_stream << "Connection: close\r\n\r\n";
 
-	try
-	{
+	try {
     	boost::asio::write(*socket, request);
-	}
-	catch (boost::wrapexcept<boost::system::system_error> ec)
-	{
+	} catch (boost::wrapexcept<boost::system::system_error> ec) {
 		std::cout << "Error: " << ec.what() << std::endl;
 		return 0;
 	}
@@ -114,15 +107,11 @@ void GeotiffReceiver::write_output(std::ofstream &output)
 	std::cout << "Downloading file..." << std::endl;
     boost::asio::read_until(*socket, *response, "\r\n\r\n");
     std::string header;
-	while (std::getline(*response_stream, header) && header != "\r")
-	{
-	}
-	if (response->size() > 0)
-    {
+	while (std::getline(*response_stream, header) && header != "\r");
+	if (response->size() > 0) {
         output << response;
     }
-    while (asio::read(*socket, *response, asio::transfer_at_least(1), *ec))
-    {
+    while (asio::read(*socket, *response, asio::transfer_at_least(1), *ec)) {
 		output << response;
     }
 	output.close();
@@ -130,18 +119,17 @@ void GeotiffReceiver::write_output(std::ofstream &output)
 
 bool GeotiffReceiver::check_output(const std::string &path)
 {
-	try
-	{
+	std::string message;
+	try {
 		std::ifstream ifs(path);
 		json data = json::parse(ifs);
-		std::cout << "Server error: " << data["message"] << std::endl;
-		std::remove(path.c_str());
-		return 0;
-	}
-	catch (...)
-	{
+		message = data["message"];
+	} catch (...) {
 		return 1;
 	}
+	std::cout << "Server error: " << message << std::endl;
+	std::remove(path.c_str());
+	return 0;
 }
 
 bool GeotiffReceiver::close_connection(const std::string &args)

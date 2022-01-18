@@ -1,5 +1,5 @@
-#ifndef __CONNECTION_TYPE__
-#define __CONNECTION_TYPE__
+#ifndef __CONNECTION_TYPE_HPP__
+#define __CONNECTION_TYPE_HPP__
 
 enum class ConnectionType
 {
@@ -7,4 +7,4 @@ enum class ConnectionType
 	LOCAL=1
 };
 
-#endif // __CONNECTION_TYPE__
+#endif // __CONNECTION_TYPE_HPP__

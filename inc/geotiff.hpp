@@ -1,8 +1,6 @@
 #ifndef __GEOTIFF_HPP__
 #define __GEOTIFF_HPP__
 
-#include <iostream>
-#include <string>
 #include <gdal_priv.h>
 
 typedef float** PositionsMatrix;
@@ -10,20 +8,23 @@ typedef float** PositionsMatrix;
 class Geotiff
 {
 public: 
-	Geotiff(const char* tiffname);
-	double* GetGeoTransform();
-	int* GetDimensions();
-	PositionsMatrix GetRasterBand(int z);
+	Geotiff(const char *tiffname);
+	double *get_geotransform();
+	int *get_dimensions();
+	PositionsMatrix get_raster_band(int z);
 	template<typename T>
-	PositionsMatrix GetArray2D(int layerIndex, PositionsMatrix bandLayer);
+	PositionsMatrix get_array(int layer_idx, PositionsMatrix band_layer);
 	~Geotiff();
 
 private:
-	const char* filename;
-	GDALDataset* geotiffDataset;
+	const char *filename;
+	GDALDataset *geotiff_dataset;
 	double geotransform[6];
 	int dimensions[3];
-	int NROWS, NCOLS, NLEVELS;
+	void *null;
+	int NROWS;
+	int NCOLS;
+	int NLEVELS;
 };
 
 #endif // __GEOTIFF_HPP__
