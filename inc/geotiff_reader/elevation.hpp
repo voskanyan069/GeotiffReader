@@ -1,13 +1,14 @@
-#ifndef __ELEVATION_HPP__
-#define __ELEVATION_HPP__
+#ifndef __GEOTIFF_READER_ELEVATION_HPP__
+#define __GEOTIFF_READER_ELEVATION_HPP__
 
 #include <cmath>
 #include <iostream>
-#include "geotiff.hpp"
-#include "geo_pixel.hpp"
-#include "geo_point.hpp"
-#include "pixel_size.hpp"
-#include "image_size.hpp"
+
+#include "geotiff_reader/reader.hpp"
+#include "geotiff_structures/geo_pixel.hpp"
+#include "geotiff_structures/geo_point.hpp"
+#include "geotiff_structures/pixel_size.hpp"
+#include "geotiff_structures/image_size.hpp"
 
 class DigitalElevation
 {
@@ -35,4 +36,4 @@ private:
 	void calculate_lr_corner(double x, double y);
 };
 
-#endif // __ELEVATION_HPP__
+#endif // __GEOTIFF_READER_ELEVATION_HPP__

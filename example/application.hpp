@@ -4,11 +4,11 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 
-#include "geo_point.hpp"
-#include "geo_pixel.hpp"
-#include "elevation.hpp"
-#include "connection_type.hpp"
-#include "geotiff_receiver.hpp"
+#include "geotiff_structures/geo_point.hpp"
+#include "geotiff_structures/geo_pixel.hpp"
+#include "geotiff_reader/elevation.hpp"
+#include "remote/connection_type.hpp"
+#include "remote/geotiff_receiver.hpp"
 
 namespace po = boost::program_options;
 

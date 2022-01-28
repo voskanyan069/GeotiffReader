@@ -1,5 +1,5 @@
-#ifndef __GEO_POINT_HPP__
-#define __GEO_POINT_HPP__
+#ifndef __GEOTIFF_STRUCTURES_GEO_POINT_HPP__
+#define __GEOTIFF_STRUCTURES_GEO_POINT_HPP__
 
 #include <cmath>
 #include <string>
@@ -28,4 +28,4 @@ private:
 	float lon_;
 };
 
-#endif // __GEO_POINT_HPP__
+#endif // __GEOTIFF_STRUCTURES_GEO_POINT_HPP__

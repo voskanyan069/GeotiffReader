@@ -1,8 +1,8 @@
-obj/*
-lib/*
-bin/*
+cmake/*
 data/*
 test/scripts/__pycache__/*
-*/.*.swp
-*/.*.swo
+*/*/.*.swp
+*/*/.*.swo
+.*.swo
+.*.swp
 tags

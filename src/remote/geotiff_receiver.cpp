@@ -1,4 +1,4 @@
-#include "geotiff_receiver.hpp"
+#include "remote/geotiff_receiver.hpp"
 
 GeotiffReceiver::GeotiffReceiver(const std::string &host,
 		const std::string &port, const ConnectionType &type,

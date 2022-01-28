@@ -1,4 +1,4 @@
-#include "elevation.hpp"
+#include "geotiff_reader/elevation.hpp"
 
 DigitalElevation::DigitalElevation()
 {
@@ -22,7 +22,7 @@ std::string DigitalElevation::get_filename(GeoPoint **points)
 
 void DigitalElevation::read_file(std::string filename)
 {
-	Geotiff *file = new Geotiff(filename.c_str());
+	GeotiffReader *file = new GeotiffReader(filename.c_str());
 	data = file->get_raster_band(1);
 	double *gt = file->get_geotransform();
 	int *dm = file->get_dimensions();

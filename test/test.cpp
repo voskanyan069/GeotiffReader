@@ -8,10 +8,10 @@
 #include <boost/algorithm/string.hpp>
 #include <gtest/gtest.h>
 
-#include "geo_point.hpp"
-#include "elevation.hpp"
-#include "connection_type.hpp"
-#include "geotiff_receiver.hpp"
+#include "geotiff_structures/geo_point.hpp"
+#include "geotiff_reader/elevation.hpp"
+#include "remote/connection_type.hpp"
+#include "remote/geotiff_receiver.hpp"
 
 #define RANDOM_TESTS_COUNT 100
 #define PRINT_COMPARE(point, l, r, idx) \

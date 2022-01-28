@@ -1,6 +1,6 @@
-#include "geotiff.hpp"
+#include "geotiff_reader/reader.hpp"
 
-Geotiff::Geotiff(const char* tiffname) : filename(tiffname)
+GeotiffReader::GeotiffReader(const char* tiffname) : filename(tiffname)
 {
 	GDALAllRegister();
 
@@ -10,13 +10,13 @@ Geotiff::Geotiff(const char* tiffname) : filename(tiffname)
 	NLEVELS = GDALGetRasterCount(geotiff_dataset);
 }
 
-double* Geotiff::get_geotransform()
+double* GeotiffReader::get_geotransform()
 {
     geotiff_dataset->GetGeoTransform(geotransform);
     return geotransform;
 }
 
-int* Geotiff::get_dimensions()
+int* GeotiffReader::get_dimensions()
 {
 	dimensions[0] = NROWS; 
 	dimensions[1] = NCOLS;
@@ -24,7 +24,7 @@ int* Geotiff::get_dimensions()
 	return dimensions;  
 } 
 
-PositionsMatrix Geotiff::get_raster_band(int z)
+PositionsMatrix GeotiffReader::get_raster_band(int z)
 {
 	PositionsMatrix bandLayer = new float*[NROWS];
 	switch(GDALGetRasterDataType(geotiff_dataset->GetRasterBand(z))) {
@@ -40,7 +40,8 @@ PositionsMatrix Geotiff::get_raster_band(int z)
 }
 
 template<typename T>
-PositionsMatrix Geotiff::get_array(int layer_idx, PositionsMatrix band_layer)
+PositionsMatrix GeotiffReader::get_array(int layer_idx,
+		PositionsMatrix band_layer)
 {
 	GDALDataType band_type = GDALGetRasterDataType(
 			geotiff_dataset->GetRasterBand(layer_idx));
@@ -61,7 +62,7 @@ PositionsMatrix Geotiff::get_array(int layer_idx, PositionsMatrix band_layer)
 	return band_layer;
 }
 
-Geotiff::~Geotiff()
+GeotiffReader::~GeotiffReader()
 {
 	GDALClose(geotiff_dataset);
 	GDALDestroyDriverManager();

@@ -1,20 +1,20 @@
-#ifndef __GEOTIFF_HPP__
-#define __GEOTIFF_HPP__
+#ifndef __GEOTIFF_READER_READER_HPP__
+#define __GEOTIFF_READER_READER_HPP__
 
-#include <gdal_priv.h>
+#include <gdal/gdal_priv.h>
 
 typedef float** PositionsMatrix;
 
-class Geotiff
+class GeotiffReader
 {
 public: 
-	Geotiff(const char *tiffname);
+	GeotiffReader(const char *tiffname);
 	double *get_geotransform();
 	int *get_dimensions();
 	PositionsMatrix get_raster_band(int z);
 	template<typename T>
 	PositionsMatrix get_array(int layer_idx, PositionsMatrix band_layer);
-	~Geotiff();
+	~GeotiffReader();
 
 private:
 	const char *filename;
@@ -27,4 +27,4 @@ private:
 	int NLEVELS;
 };
 
-#endif // __GEOTIFF_HPP__
+#endif // __GEOTIFF_READER_READER_HPP__

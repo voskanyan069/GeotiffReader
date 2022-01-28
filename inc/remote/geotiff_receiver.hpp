@@ -1,5 +1,5 @@
-#ifndef __GEOTIFF_RECEIVER_HPP__
-#define __GEOTIFF_RECEIVER_HPP__
+#ifndef __REMOTE_GEOTIFF_RECEIVER_HPP__
+#define __REMOTE_GEOTIFF_RECEIVER_HPP__
 
 #include <iostream>
 #include <fstream>
@@ -13,7 +13,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/device/mapped_file.hpp>
 
-#include "connection_type.hpp"
+#include "remote/connection_type.hpp"
 
 namespace asio = boost::asio;
 namespace fs = boost::filesystem;
@@ -51,4 +51,4 @@ private:
 	bool close_connection(const std::string &args);
 };
 
-#endif // __GEOTIFF_RECEIVER_HPP__
+#endif // __REMOTE_GEOTIFF_RECEIVER_HPP__

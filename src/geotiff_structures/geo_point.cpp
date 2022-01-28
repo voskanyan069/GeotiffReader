@@ -1,4 +1,4 @@
-#include "geo_point.hpp"
+#include "geotiff_structures/geo_point.hpp"
 
 GeoPoint::GeoPoint()
 {
