@@ -41,6 +41,7 @@ private:
 	boost::asio::streambuf *response;
 	std::istream *response_stream;
 
+	int curl_request(const std::string &url, bool show_output = false);
 	bool is_loaded(const std::string &path);
 	bool download(const std::string &url, const std::string &filename);
 	void create_connection();

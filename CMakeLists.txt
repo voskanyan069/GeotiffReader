@@ -35,7 +35,7 @@ FILE(GLOB ALL_SOURCES
 	"${PROJECT_SOURCE_DIR}/src/geotiff_structures/*.cpp"
 	)
 
-ADD_LIBRARY( geotiff_reader STATIC ${ALL_SOURCES} )
+ADD_LIBRARY( geotiff_reader SHARED ${ALL_SOURCES} )
 ADD_EXECUTABLE( GeotiffReader "${PROJECT_SOURCE_DIR}/example/application.cpp" )
 ADD_EXECUTABLE( ReaderTest "${PROJECT_SOURCE_DIR}/test/test.cpp")
 

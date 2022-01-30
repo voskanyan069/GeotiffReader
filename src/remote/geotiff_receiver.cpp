@@ -35,6 +35,16 @@ bool GeotiffReceiver::is_loaded(const std::string &path)
 	return 0;
 }
 
+int GeotiffReceiver::curl_request(const std::string &url, bool show_output)
+{
+	std::string cmd = "curl \"" + url + "\"";
+	if (!show_output) {
+		cmd += " > /dev/null 2>&1";
+	}
+	int rc = system(cmd.c_str());
+	return rc;
+}
+
 bool GeotiffReceiver::download(const std::string &url,
 		const std::string &filename)
 {
@@ -136,8 +146,7 @@ bool GeotiffReceiver::close_connection(const std::string &args)
 {
 	std::string url = address_ + "/api/v1/close_connection?" + args;
 	std::cout << "Closing connection..." << std::endl;
-	std::string cmd = "curl \"" + url + "\" > /dev/null 2>&1";
-	int rc = system(cmd.c_str());
+	int rc = curl_request(url);
 	return rc;
 }
 
