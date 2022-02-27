@@ -1,76 +1,78 @@
 #include "remote/geotiff_receiver.hpp"
 
-GeotiffReceiver::GeotiffReceiver(const std::string &host,
-		const std::string &port, const ConnectionType &type,
-		const std::string &path)
-	: host_(host), save_path(path), connection_type_(type),
-	  port_((type == ConnectionType::LOCAL) ? port : "http"),
-	  address_( (type == ConnectionType::LOCAL)
-			  ? host + ":" + port
-			  : port + "://" + host)
+GeotiffReceiver::GeotiffReceiver(const std::string& sHost,
+		const std::string& sPort, const ConnectionType& eType,
+		const std::string& sPath)
+	: m_host(sHost), m_savePath(sPath), m_connectionType(eType),
+	  m_port((eType == ConnectionType::LOCAL) ? sPort : "http"),
+	  m_address((eType == ConnectionType::LOCAL)
+			  ? sHost + ":" + sPort
+			  : sPort + "://" + sHost)
 {
 }
 
-bool GeotiffReceiver::receive(const std::string &args,
-		const std::string &filename)
+bool GeotiffReceiver::Receive(const std::string& sArgs,
+		const std::string& sFilename)
 {
-	std::string path = save_path + "/" + filename;
-	if (is_loaded(path))
+	std::string path = m_savePath + "/" + sFilename;
+	if (isLoaded(path)) {
 		return 1;
-	int rc = download("/api/v1/polygon?" + args, filename);
-	close_connection(args);
+	}
+	int rc = download("/api/v1/polygon?" + sArgs, sFilename);
+	closeConnection(sArgs);
 	return rc;
 }
 
-bool GeotiffReceiver::is_loaded(const std::string &path)
+bool GeotiffReceiver::isLoaded(const std::string& sPath)
 {
 	std::cout << "Looking for local data at "
-		<< save_path << "..." << std::endl;
-	bool is_exists = fs::exists(path);
-	if (is_exists) {
-		std::cout << "Local data exist at " << path << std::endl;
-		return is_exists;
+		<< m_savePath << "..." << std::endl;
+	bool isExists = fs::exists(sPath);
+	if (isExists) {
+		std::cout << "Local data exist at " << sPath << std::endl;
+		return isExists;
 	}
 	std::cout << "Local data not found" << std::endl;
 	return 0;
 }
 
-int GeotiffReceiver::curl_request(const std::string &url, bool show_output)
+int GeotiffReceiver::curlRequest(const std::string& sUrl, bool bVerbose)
 {
-	std::string cmd = "curl \"" + url + "\"";
-	if (!show_output) {
+	std::string cmd = "curl \"" + sUrl + "\"";
+	if (!bVerbose) {
 		cmd += " > /dev/null 2>&1";
 	}
 	int rc = system(cmd.c_str());
 	return rc;
 }
 
-bool GeotiffReceiver::download(const std::string &url,
-		const std::string &filename)
+bool GeotiffReceiver::download(const std::string& sUrl,
+		const std::string& sFilename)
 {
-	std::string path = save_path + "/" + filename;
-	std::string cmd = "mkdir -p " + save_path;
-	create_connection();
-	bool success = send_request(url);
-	if (!success)
+	std::string path = m_savePath + "/" + sFilename;
+	std::string cmd = "mkdir -p " + m_savePath;
+	createConnection();
+	bool success = sendRequest(sUrl);
+	if (!success) {
 		return 0;
+	}
 	system(cmd.c_str());
-	std::ofstream output_file(path, std::ios::out | std::ios::binary);
-	process_response();
-	write_output(output_file);
-	bool rc = check_output(path);
+	std::ofstream outputFile(path, std::ios::out | std::ios::binary);
+	processResponse();
+	writeOutput(outputFile);
+	bool rc = checkOutput(path);
 	return rc;
 }
 
-void GeotiffReceiver::create_connection()
+void GeotiffReceiver::createConnection()
 {
-	std::cout << "Connecting to " << address_ << " ..." << std::endl;
-	io_service = new boost::asio::io_service();
-	tcp::resolver resolver(*io_service);
-    tcp::resolver::query query(host_, port_);
+	std::cout << "Connecting to " << m_address << " ..." << std::endl;
+	ioService = new boost::asio::io_service();
+	tcp::resolver resolver(*ioService);
+    tcp::resolver::query query(m_host, m_port);
     tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
     tcp::resolver::iterator end;
-	socket = new tcp::socket(*io_service);
+	socket = new tcp::socket(*ioService);
 	ec = new boost::system::error_code(asio::error::host_not_found);
     while (*ec && endpoint_iterator != end) {
         socket->close();
@@ -78,14 +80,14 @@ void GeotiffReceiver::create_connection()
 	}
 }
 
-bool GeotiffReceiver::send_request(const std::string &url)
+bool GeotiffReceiver::sendRequest(const std::string &sUrl)
 {
 	std::cout << "Sending GET request..." << std::endl;
 	boost::asio::streambuf request;
     std::ostream request_stream(&request);
 
-    request_stream << "GET " << url << " HTTP/1.0\r\n";
-    request_stream << "Host: " << host_ << "\r\n";
+    request_stream << "GET " << sUrl << " HTTP/1.0\r\n";
+    request_stream << "Host: " << m_host << "\r\n";
     request_stream << "Accept: */*\r\n";
     request_stream << "Connection: close\r\n\r\n";
 
@@ -98,55 +100,55 @@ bool GeotiffReceiver::send_request(const std::string &url)
 	return 1;
 }
 
-void GeotiffReceiver::process_response()
+void GeotiffReceiver::processResponse()
 {
 	std::cout << "Waiting for a response..." << std::endl;
 	response = new boost::asio::streambuf();
     boost::asio::read_until(*socket, *response, "\r\n");
-	response_stream = new std::istream(response);
-    std::string http_version;
-    *response_stream >> http_version;
-    unsigned int status_code;
-    *response_stream >> status_code;
-    std::string status_message;
-    std::getline(*response_stream, status_message);
+	responseStream = new std::istream(response);
+    std::string httpVersion;
+    *responseStream >> httpVersion;
+    unsigned int statusCode;
+    *responseStream >> statusCode;
+    std::string statusMessage;
+    std::getline(*responseStream, statusMessage);
 }
 
-void GeotiffReceiver::write_output(std::ofstream &output)
+void GeotiffReceiver::writeOutput(std::ofstream& fOutput)
 {
 	std::cout << "Downloading file..." << std::endl;
     boost::asio::read_until(*socket, *response, "\r\n\r\n");
     std::string header;
-	while (std::getline(*response_stream, header) && header != "\r");
+	while (std::getline(*responseStream, header) && header != "\r");
 	if (response->size() > 0) {
-        output << response;
+        fOutput << response;
     }
     while (asio::read(*socket, *response, asio::transfer_at_least(1), *ec)) {
-		output << response;
+		fOutput << response;
     }
-	output.close();
+	fOutput.close();
 }
 
-bool GeotiffReceiver::check_output(const std::string &path)
+bool GeotiffReceiver::checkOutput(const std::string& sPath)
 {
 	std::string message;
 	try {
-		std::ifstream ifs(path);
+		std::ifstream ifs(sPath);
 		json data = json::parse(ifs);
 		message = data["message"];
 	} catch (...) {
 		return 1;
 	}
 	std::cout << "Server error: " << message << std::endl;
-	std::remove(path.c_str());
+	std::remove(sPath.c_str());
 	return 0;
 }
 
-bool GeotiffReceiver::close_connection(const std::string &args)
+bool GeotiffReceiver::closeConnection(const std::string& sArgs)
 {
-	std::string url = address_ + "/api/v1/close_connection?" + args;
+	std::string url = m_address + "/api/v1/close_connection?" + sArgs;
 	std::cout << "Closing connection..." << std::endl;
-	int rc = curl_request(url);
+	int rc = curlRequest(url);
 	return rc;
 }
 
@@ -154,7 +156,7 @@ GeotiffReceiver::~GeotiffReceiver()
 {
 	delete ec;
 	delete socket;
-	delete io_service;
+	delete ioService;
 	delete response;
-	delete response_stream;
+	delete responseStream;
 }

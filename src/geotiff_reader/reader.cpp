@@ -1,69 +1,71 @@
 #include "geotiff_reader/reader.hpp"
 
-GeotiffReader::GeotiffReader(const char* tiffname) : filename(tiffname)
+GeotiffReader::GeotiffReader(const std::string& sTiffname)
 {
 	GDALAllRegister();
 
-	geotiff_dataset = (GDALDataset*) GDALOpen(filename, GA_ReadOnly);
-	NROWS = GDALGetRasterYSize(geotiff_dataset); 
-	NCOLS = GDALGetRasterXSize(geotiff_dataset); 
-	NLEVELS = GDALGetRasterCount(geotiff_dataset);
+	m_geotiffDataset = (GDALDataset*) GDALOpen(sTiffname.c_str(), GA_ReadOnly);
+	m_NROWS = GDALGetRasterYSize(m_geotiffDataset);
+	m_NCOLS = GDALGetRasterXSize(m_geotiffDataset);
+	m_NLEVELS = GDALGetRasterCount(m_geotiffDataset);
 }
 
-double* GeotiffReader::get_geotransform()
+double* GeotiffReader::GetGeotransform()
 {
-    geotiff_dataset->GetGeoTransform(geotransform);
-    return geotransform;
+    m_geotiffDataset->GetGeoTransform(m_geotransform);
+    return m_geotransform;
 }
 
-int* GeotiffReader::get_dimensions()
+int* GeotiffReader::GetDimensions()
 {
-	dimensions[0] = NROWS; 
-	dimensions[1] = NCOLS;
-	dimensions[2] = NLEVELS; 
-	return dimensions;  
+	m_dimensions[0] = m_NROWS; 
+	m_dimensions[1] = m_NCOLS;
+	m_dimensions[2] = m_NLEVELS; 
+	return m_dimensions;  
 } 
 
-PositionsMatrix GeotiffReader::get_raster_band(int z)
+PositionsMatrix GeotiffReader::GetRasterBand(const int& z)
 {
-	PositionsMatrix bandLayer = new float*[NROWS];
-	switch(GDALGetRasterDataType(geotiff_dataset->GetRasterBand(z))) {
-		case  1: return get_array<unsigned char>(z, bandLayer); 
-		case  2: return get_array<unsigned short>(z, bandLayer);
-		case  3: return get_array<short>(z, bandLayer);
-		case  4: return get_array<unsigned int>(z, bandLayer);
-		case  5: return get_array<int>(z, bandLayer);
-		case  6: return get_array<float>(z, bandLayer);
-		case  7: return get_array<double>(z, bandLayer);
-		default: return NULL;  
+	PositionsMatrix bandLayer = new float*[m_NROWS];
+	switch(GDALGetRasterDataType(m_geotiffDataset->GetRasterBand(z))) {
+		case  1: return GetArray<unsigned char>(z, bandLayer); 
+		case  2: return GetArray<unsigned short>(z, bandLayer);
+		case  3: return GetArray<short>(z, bandLayer);
+		case  4: return GetArray<unsigned int>(z, bandLayer);
+		case  5: return GetArray<int>(z, bandLayer);
+		case  6: return GetArray<float>(z, bandLayer);
+		case  7: return GetArray<double>(z, bandLayer);
+		default: return nullptr;
 	}
 }
 
 template<typename T>
-PositionsMatrix GeotiffReader::get_array(int layer_idx,
-		PositionsMatrix band_layer)
+PositionsMatrix GeotiffReader::GetArray(int iLayerIndex,
+		PositionsMatrix oBandLayer)
 {
-	GDALDataType band_type = GDALGetRasterDataType(
-			geotiff_dataset->GetRasterBand(layer_idx));
-	int nbytes = GDALGetDataTypeSizeBytes(band_type);
-	T *row_buff = (T*) CPLMalloc(nbytes*NCOLS);
+	GDALDataType bandType = GDALGetRasterDataType(
+			m_geotiffDataset->GetRasterBand(iLayerIndex));
+	int nbytes = GDALGetDataTypeSizeBytes(bandType);
+	T *rowBuff = (T*) CPLMalloc(nbytes*m_NCOLS);
 
-	for(int row = 0; row < NROWS; ++row) {
-		CPLErr e = geotiff_dataset->GetRasterBand(layer_idx)->RasterIO(
-				GF_Read, 0, row, NCOLS, 1, row_buff, NCOLS, 1, band_type, 0, 0);
-		if (e)
+	for(int row = 0; row < m_NROWS; ++row) {
+		CPLErr e = m_geotiffDataset->GetRasterBand(iLayerIndex)->RasterIO(
+				GF_Read, 0, row, m_NCOLS, 1, rowBuff,
+				m_NCOLS, 1, bandType, 0, 0);
+		if (e) {
 			exit(1);
-		band_layer[row] = new float[NCOLS];
-		for(int col = 0; col < NCOLS; ++col) {
-			band_layer[row][col] = static_cast<float>(row_buff[col]);
+		}
+		oBandLayer[row] = new float[m_NCOLS];
+		for(int col = 0; col < m_NCOLS; ++col) {
+			oBandLayer[row][col] = static_cast<float>(rowBuff[col]);
 		}
 	}
-	CPLFree(row_buff);
-	return band_layer;
+	CPLFree(rowBuff);
+	return oBandLayer;
 }
 
 GeotiffReader::~GeotiffReader()
 {
-	GDALClose(geotiff_dataset);
+	GDALClose(m_geotiffDataset);
 	GDALDestroyDriverManager();
 }

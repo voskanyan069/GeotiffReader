@@ -3,29 +3,30 @@
 
 #include <cmath>
 #include <string>
+#include <sstream>
 #include <iostream>
 
 struct GeoPoint
 {
 public:
 	GeoPoint();
-	GeoPoint(float lat, float lon);
-	void set_latitude(float lat);
-	void set_longitude(float lon);
-	float latitude();
-	float longitude();
-	float latitude_name();
-	float longitude_name();
-	std::string to_string();
-	GeoPoint *as_int();
+	GeoPoint(const float& lat, const float& lon);
+	void SetLatitude(const float& lat);
+	void SetLongitude(const float& lon);
+	float Latitude() const;
+	float Longitude() const;
+	float LatitudeName() const;
+	float LongitudeName() const;
+	std::string String();
+	GeoPoint* Floor();
 	~GeoPoint();
 
 	friend bool operator<(const GeoPoint &l, const GeoPoint &r);
 	friend bool operator>(const GeoPoint &l, const GeoPoint &r);
 
 private:
-	float lat_;
-	float lon_;
+	float m_latitude;
+	float m_longitude;
 };
 
 #endif // __GEOTIFF_STRUCTURES_GEO_POINT_HPP__

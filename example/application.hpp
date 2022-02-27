@@ -15,23 +15,24 @@ namespace po = boost::program_options;
 class Application
 {
 public:
-	Application(int argc, char *argv[]);
-	int parse_options();
-	int execute();
+	Application(int argc, char* argv[]);
+	int ParseOptions();
+	int Execute();
 	~Application();
 
 private:
-	int argc;
-	char **argv;
-	std::string sw;
-	std::string ne;
-	std::string path;
-	GeotiffReceiver *receiver;
-	DigitalElevation *dem;
+	std::string initRequest(GeoPoint* oPoints[2]);
+	int receiverTest(const std::string& sUrl, GeoPoint *oPoints[2]);
+	void elevationTest(const std::string& sPath, GeoPoint& oPoint);
 
-	std::string init_request(GeoPoint *points[2]);
-	int receiver_test(std::string url, GeoPoint *points[2]);
-	void elevation_test(std::string path, GeoPoint *point);
+private:
+	int m_argc;
+	char** m_argv;
+	std::string m_sw;
+	std::string m_ne;
+	std::string m_path;
+	GeotiffReceiver* m_receiver;
+	DigitalElevation* m_dem;
 };
 
 #endif // __APPLICAITON_HPP__

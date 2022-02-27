@@ -23,33 +23,34 @@ using json = nlohmann::json;
 class GeotiffReceiver
 {
 public:
-	GeotiffReceiver(const std::string &host, const std::string &port,
-			const ConnectionType &type, const std::string &path);
-	bool receive(const std::string &args, const std::string &filename);
+	GeotiffReceiver(const std::string& sHost, const std::string& sPort,
+			const ConnectionType& eType, const std::string& sPath);
+	bool Receive(const std::string& sArgs, const std::string& sFilename);
 	~GeotiffReceiver();
 
 private:
-	const std::string host_;
-	const std::string port_;
-	const std::string address_;
-	const std::string save_path;
-	const ConnectionType connection_type_;
+	int curlRequest(const std::string& sUrl, bool bVerbose = false);
+	void createConnection();
+	void processResponse();
+	void writeOutput(std::ofstream& fOutput);
+	bool isLoaded(const std::string& sPath);
+	bool download(const std::string& sUrl, const std::string& sFilename);
+	bool sendRequest(const std::string& sUrl);
+	bool checkOutput(const std::string& sPath);
+	bool closeConnection(const std::string& sArgs);
+
+private:
+	const std::string m_host;
+	const std::string m_port;
+	const std::string m_address;
+	const std::string m_savePath;
+	const ConnectionType m_connectionType;
 
 	boost::system::error_code *ec;
-	boost::asio::io_service *io_service;
+	boost::asio::io_service *ioService;
 	tcp::socket *socket;
 	boost::asio::streambuf *response;
-	std::istream *response_stream;
-
-	int curl_request(const std::string &url, bool show_output = false);
-	bool is_loaded(const std::string &path);
-	bool download(const std::string &url, const std::string &filename);
-	void create_connection();
-	bool send_request(const std::string &url);
-	void process_response();
-	void write_output(std::ofstream &output);
-	bool check_output(const std::string &path);
-	bool close_connection(const std::string &args);
+	std::istream *responseStream;
 };
 
 #endif // __REMOTE_GEOTIFF_RECEIVER_HPP__

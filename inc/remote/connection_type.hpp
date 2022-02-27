@@ -3,8 +3,8 @@
 
 enum class ConnectionType
 {
-	REMOTE=0,
-	LOCAL=1
+	LOCAL = 0,
+	REMOTE = 1
 };
 
 #endif // __REMOTE_CONNECTION_TYPE_HPP__

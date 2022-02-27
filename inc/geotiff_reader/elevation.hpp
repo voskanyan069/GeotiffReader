@@ -14,26 +14,29 @@ class DigitalElevation
 {
 public:
 	DigitalElevation();
-	int get_elevation(GeoPoint *point);
-	bool is_point_exist(GeoPoint *point);
-	bool is_valid_points(GeoPoint **points);
-	void read_file(std::string filename);
-	std::string get_filename(GeoPoint *point);
-	std::string get_filename(GeoPoint **points);
+	int GetElevation(GeoPoint& oPoint);
+	bool IsPointExist(const GeoPoint& oPoint);
+	bool IsValidPoints(GeoPoint** oPoints);
+	void ReadFile(const std::string& sFilename);
+	std::string GetFilename(GeoPoint& oPoint);
+	std::string GetFilename(GeoPoint** oPoints);
 	~DigitalElevation();
 
 private:
-	PositionsMatrix data;
-	PixelSize *geotransform;
-	ImageSize *image_size;
-	GeoPoint *area_corner;
-	GeoPoint *min_point;
-	GeoPoint *max_point;
+	std::string calculateFilename(GeoPoint& oPoint);
+	int elevationFromPixel(const Pixel& oPixel);
+	void calculatePixel(GeoPoint& oPoint, Pixel& oPixel);
+	void calculateLrCorner(const double x, const double y);
 
-	std::string calculate_filename(GeoPoint *point);
-	int elevation_from_pixel(Pixel *pixel);
-	Pixel *calculate_pixel(GeoPoint *point);
-	void calculate_lr_corner(double x, double y);
+private:
+	GeotiffReader* m_file;
+	std::string m_filename;
+	PositionsMatrix m_positions;
+	PixelSize* m_geotransform;
+	ImageSize* m_imageSize;
+	GeoPoint* m_areaCorner;
+	GeoPoint* m_minPoint;
+	GeoPoint* m_maxPoint;
 };
 
 #endif // __GEOTIFF_READER_ELEVATION_HPP__

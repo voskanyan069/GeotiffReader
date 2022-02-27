@@ -15,20 +15,20 @@
 
 #define RANDOM_TESTS_COUNT 100
 #define PRINT_COMPARE(point, l, r, idx) \
-	std::cout << "[" << idx << "]. " << point->to_string() \
+	std::cout << "[" << idx << "]. " << point->String() \
 			  << " = " << l << " <=> " << r << std::endl;
 #define RECEIVE_DATA(x1, y1, x2, y2) \
 	GeoPoint* points[2] = { new GeoPoint(x1, y1), new GeoPoint(x2, y2) }; \
 	std::string url_args = init_request(points); \
-	std::string filename = dem->get_filename(points); \
-	if (gr->receive(url_args, filename)) { \
-		dem->read_file(path + filename);
+	std::string filename = dem->GetFilename(points); \
+	if (gr->Receive(url_args, filename)) { \
+		dem->ReadFile(path + filename);
 #define CLOSE }
 
 namespace bp = boost::process;
 typedef std::vector<std::string> Strings;
 
-std::string path = "./data/";
+std::string path = "../../data/";
 std::string test_path = "./test/scripts/";
 std::string reader_py = test_path + "position_reader.py";
 std::string airmap_py = test_path + "airmap_receiver.py";
@@ -59,8 +59,8 @@ float get_random(int from, int to)
 
 std::string init_request(GeoPoint* points[2])
 {
-    std::string url_args = "sw=" + points[0]->to_string();
-	url_args += "&ne=" + points[1]->to_string();
+    std::string url_args = "sw=" + points[0]->String();
+	url_args += "&ne=" + points[1]->String();
     return url_args;
 }
 
@@ -69,8 +69,8 @@ GeoPoint** collect_data()
 	GeoPoint** points = new GeoPoint*[RANDOM_TESTS_COUNT];
 	GeoPoint* pt = new GeoPoint();
 	for (int i = 0; i < RANDOM_TESTS_COUNT; ++i) {
-		pt->set_latitude(get_random(38, 43));
-		pt->set_longitude(get_random(43, 48));
+		pt->SetLatitude(get_random(38, 43));
+		pt->SetLongitude(get_random(43, 48));
 		points[i] = new GeoPoint(*pt);
 	}
 	return points;
@@ -78,10 +78,10 @@ GeoPoint** collect_data()
 
 std::string points_to_string(GeoPoint** points)
 {
-	std::string content = (*points)->to_string();
+	std::string content = (*points)->String();
 	for (int i = 1; i < RANDOM_TESTS_COUNT; ++i) {
 		if (points[i]) {
-			content += "," + points[i]->to_string();
+			content += "," + points[i]->String();
 		}
 	}
 	return content;
@@ -104,8 +104,8 @@ TEST(DownloadTest, Positive)
 	for (int i = 0; i < 6; ++i) {
 		GeoPoint* pts[2] = {points[i], points[++i]};
 		std::string url_args = init_request(pts);
-		std::string filename = dem->get_filename(pts);
-		ASSERT_EQ(1, gr->receive(url_args, filename)) << url_args;
+		std::string filename = dem->GetFilename(pts);
+		ASSERT_EQ(1, gr->Receive(url_args, filename)) << url_args;
 	}
 }
 
@@ -117,10 +117,10 @@ TEST(DownloadTest, Negative)
 	};
 	for (int i = 0; i < 4; ++i) {
 		GeoPoint* pts[2] = {points[i], points[++i]};
-		if (dem->is_valid_points(pts)) {
+		if (dem->IsValidPoints(pts)) {
 			std::string url_args = init_request(pts);
-			std::string filename = dem->get_filename(pts);
-			ASSERT_EQ(1, gr->receive(url_args, filename)) << url_args;
+			std::string filename = dem->GetFilename(pts);
+			ASSERT_EQ(1, gr->Receive(url_args, filename)) << url_args;
 		}
 	}
 }
@@ -133,13 +133,13 @@ TEST(ReadTest, Positive)
 		new GeoPoint(40.6183, 44.1267), new GeoPoint(42.1412, 46.4324)
 	};
 	int values[4] = {1428, 2352, 2254, 2207};
-	if (dem->is_valid_points(pts)) {
+	if (dem->IsValidPoints(pts)) {
 		std::string url_args = init_request(pts);
-		std::string filename = dem->get_filename(pts);
-		if (gr->receive(url_args, filename)) {
-			dem->read_file(path + filename);
+		std::string filename = dem->GetFilename(pts);
+		if (gr->Receive(url_args, filename)) {
+			dem->ReadFile(path + filename);
 			for (int j = 0; j < 4; ++j) {
-				int alt = dem->get_elevation(test_points[j]);
+				int alt = dem->GetElevation(*test_points[j]);
 				ASSERT_EQ(values[j], alt);
 			}
 		}
@@ -155,13 +155,13 @@ TEST(ReadTest, Negative)
 		new GeoPoint(42.7990, 46.5376), new GeoPoint(38.7990, 46.5376),
 		new GeoPoint(38.7990, 38.5376), new GeoPoint(642.7990, -646.5376)
 	};
-	if (dem->is_valid_points(pts)) {
+	if (dem->IsValidPoints(pts)) {
 		std::string url_args = init_request(pts);
-		std::string filename = dem->get_filename(pts);
-		if (gr->receive(url_args, filename)) {
-			dem->read_file(path + filename);
+		std::string filename = dem->GetFilename(pts);
+		if (gr->Receive(url_args, filename)) {
+			dem->ReadFile(path + filename);
 			for (int i = 0; i < 4; ++i) {
-				ASSERT_EQ(0, dem->is_point_exist(test_points[i]));
+				ASSERT_EQ(0, dem->IsPointExist(*test_points[i]));
 			}
 		}
 	}
@@ -172,11 +172,11 @@ TEST(ElevationTest, Random)
 	RECEIVE_DATA(38, 43, 42, 47)
 		GeoPoint* pt = new GeoPoint();
 		for (int i = 0; i < RANDOM_TESTS_COUNT; ++i) {
-			pt->set_latitude(get_random(38, 43));
-			pt->set_longitude(get_random(43, 48));
+			pt->SetLatitude(get_random(38, 43));
+			pt->SetLongitude(get_random(43, 48));
 			std::string val = execute_command(reader_py,
-					Strings{pt->to_string()});
-			std::string alt = std::to_string(dem->get_elevation(pt));
+					Strings{pt->String()});
+			std::string alt = std::to_string(dem->GetElevation(*pt));
 			PRINT_COMPARE(pt, val, alt, i);
 			EXPECT_EQ(val, alt);
 		}
@@ -194,7 +194,7 @@ TEST(AirmapCompareTest, Random)
 		std::string alt;
 		for (int i = 0; i < RANDOM_TESTS_COUNT; ++i) {
 			pt = point_array[i];
-			alt = std::to_string(dem->get_elevation(pt));
+			alt = std::to_string(dem->GetElevation(*pt));
 			if (values[i] == "None")
 				continue;
 			PRINT_COMPARE(pt, values[i], alt, i)

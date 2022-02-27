@@ -4,63 +4,64 @@ GeoPoint::GeoPoint()
 {
 }
 
-GeoPoint::GeoPoint(float lat, float lon) : lat_(lat), lon_(lon)
+GeoPoint::GeoPoint(const float& lat, const float& lon)
+	: m_latitude(lat), m_longitude(lon)
 {
 }
 
-void GeoPoint::set_latitude(float lat)
+void GeoPoint::SetLatitude(const float& lat)
 {
-	lat_ = lat;
+	m_latitude = lat;
 }
 
-void GeoPoint::set_longitude(float lon)
+void GeoPoint::SetLongitude(const float& lon)
 {
-	lon_ = lon;
+	m_longitude = lon;
 }
 
-float GeoPoint::latitude()
+float GeoPoint::Latitude() const
 {
-	return lat_;
+	return m_latitude;
 }
 
-float GeoPoint::longitude()
+float GeoPoint::Longitude() const
 {
-	return lon_;
+	return m_longitude;
 }
 
-float GeoPoint::latitude_name()
+float GeoPoint::LatitudeName() const
 {
-	return fabs(floorf(lat_));
+	return fabs(floorf(m_latitude));
 }
 
-float GeoPoint::longitude_name()
+float GeoPoint::LongitudeName() const
 {
-	return fabs(floorf(lon_));
+	return fabs(floorf(m_longitude));
+}
+	
+GeoPoint* GeoPoint::Floor()
+{
+	return new GeoPoint(this->LatitudeName(), this->LongitudeName());
 }
 
-GeoPoint* GeoPoint::as_int()
+std::string GeoPoint::String()
 {
-	return new GeoPoint(this->latitude_name(), this->longitude_name());
-}
-
-std::string GeoPoint::to_string()
-{
-	std::string value = std::to_string(this->latitude()) + ","
-		+ std::to_string(this->longitude());
+	std::string value = std::to_string(this->Latitude()) + "," +
+		std::to_string(this->Longitude());
 	return value;
 }
 
 bool operator<(const GeoPoint &l, const GeoPoint &r)
 {
-	bool lat = floorf(l.lat_) < floorf(r.lat_);
-	bool lon = floorf(l.lon_) < floorf(r.lon_);
+	bool lat = floorf(l.m_latitude) < floorf(r.m_latitude);
+	bool lon = floorf(l.m_longitude) < floorf(r.m_longitude);
 	return lat || lon;
 }
 
 bool operator>(const GeoPoint &l, const GeoPoint &r)
 {
-	bool lat = floorf(l.lat_) > floorf(r.lat_);
-	bool lon = floorf(l.lon_) > floorf(r.lon_);
+	bool lat = floorf(l.m_latitude) > floorf(r.m_latitude);
+	bool lon = floorf(l.m_longitude) > floorf(r.m_longitude);
 	return lat || lon;
 }
 

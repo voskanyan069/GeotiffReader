@@ -11,7 +11,7 @@ public:
 	{
 	}
 
-	Pixel(int r, int c): row(r), col(c)
+	Pixel(int r, int c) : row(r), col(c)
 	{
 	}
 };
