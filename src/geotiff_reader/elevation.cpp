@@ -1,4 +1,5 @@
 #include "base/system.hpp"
+#include "base/cmd_argument.hpp"
 #include "geotiff_reader/elevation.hpp"
 #include "geotiff_reader/reader.hpp"
 #include "geotiff_types/geo_point.hpp"
@@ -67,8 +68,14 @@ void DigitalElevationMgr::calculate_pixel(const GeoPoint* point,
 	delete tmp_px;
 }
 
-void DigitalElevationMgr::read(const std::string& filename)
+void DigitalElevationMgr::read(std::string& filename)
 {
+	bool is_save = CMDArguments::instance().find("is_save")->get<bool>();
+	if (!is_save)
+	{
+		fs::path path(filename);
+		filename = "/tmp/" + path.filename().string();
+	}
 	SysUtil::info({"Reading ", filename});
 	if (filename != m_last_filename)
 	{

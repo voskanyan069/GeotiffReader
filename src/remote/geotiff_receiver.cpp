@@ -1,10 +1,11 @@
 #include <iostream>
 #include <exception>
 
+#include "base/system.hpp"
+#include "base/cmd_argument.hpp"
 #include "remote/geotiff_receiver.hpp"
 #include "geotiff_reader/elevation.hpp"
 #include "geotiff_types/geo_point.hpp"
-#include "base/system.hpp"
 
 GeotiffReceiver::GeotiffReceiver(const std::string& host,
 		const std::string& port, const ConnectionType& conn_type,
@@ -13,12 +14,15 @@ GeotiffReceiver::GeotiffReceiver(const std::string& host,
     , m_port(port)
 	, m_curl(curl_easy_init())
     , m_path(path)
+    , m_is_save(false)
     , m_api_base("/api/v1")
 	, m_dem(DigitalElevationMgr::instance())
+	, m_cmdargs(CMDArguments::instance())
     , m_address((conn_type == ConnectionType::LOCAL)
             ? host + ":" + port
             : port + "://" + host)
 {
+	get_options();
 	if (!SysUtil::is_exists(path))
 	{
 		SysUtil::mkdir(path);
@@ -30,13 +34,35 @@ void GeotiffReceiver::receive(std::string& filename, const GeoPoint* points[2])
 	filename = "";
 	m_dem.get_filename(filename, points);
 	std::string path = m_path + "/" + filename;
-	bool loaded = is_loaded(path);
-	SysUtil::info({"Looking for local data at ", path});
-	if (loaded)
+	if (lookup_data(path))
 	{
-		SysUtil::info("Local data was found");
 		return;
 	}
+	receive_data(path, points);
+}
+
+bool GeotiffReceiver::lookup_data(const std::string& path)
+{
+	bool rc = false;
+	if (m_is_lookup)
+	{
+		SysUtil::info({"Looking for local data in ", path});
+		if (is_loaded(path))
+		{
+			SysUtil::info("Local data was found");
+			rc = true;
+		}
+		else
+		{
+			SysUtil::warn("Local data has not been found");
+		}
+	}
+	return rc;
+}
+
+void GeotiffReceiver::receive_data(const std::string& path,
+		const GeoPoint* points[2])
+{
 	std::string args;
 	FILE* output = fopen(path.c_str(), "wb");
 	if (!output)
@@ -47,6 +73,17 @@ void GeotiffReceiver::receive(std::string& filename, const GeoPoint* points[2])
 	create_connection();
 	download(args, output);
 	close_connection(args);
+}
+
+void GeotiffReceiver::get_options()
+{
+	m_is_save = m_cmdargs.find("is_save")->get<bool>();
+	m_is_lookup = m_cmdargs.find("is_lookup")->get<bool>();
+
+	if (!m_is_save)
+	{
+		m_path = "/tmp/";
+	}
 }
 
 void GeotiffReceiver::points2args(const GeoPoint* points[2], std::string& args)

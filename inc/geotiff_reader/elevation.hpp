@@ -19,7 +19,7 @@ public:
 	DigitalElevationMgr& operator=(const DigitalElevationMgr&) = delete;
 	~DigitalElevationMgr();
 
-	void read(const std::string& filename);
+	void read(std::string& filename);
 	int get_elevation(const GeoPoint* point);
 	bool is_point_exists(const GeoPoint* point);
 	bool is_points_valid(const GeoPoint** points);

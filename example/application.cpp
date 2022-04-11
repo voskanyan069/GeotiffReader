@@ -16,6 +16,8 @@ namespace po = boost::program_options;
 Application::Application(int argc, char* argv[])
 	: m_argc(argc)
 	, m_argv(argv)
+	, m_is_save(true)
+	, m_is_lookup(true)
 	, m_receiver(nullptr)
 	, m_dem(DigitalElevationMgr::instance())
 	, m_cmdargs(CMDArguments::instance())
@@ -38,8 +40,10 @@ void Application::add_options(po::options_description& desc,
 {
 	desc.add_options()
 		("help,h", "show help message")
-		("save,s", po::bool_switch(&m_is_save),
-		 "save downloaded data")
+		("no-save,s", po::bool_switch(&m_is_save),
+		 "disable saving of downloaded data")
+		("no-local,L", po::bool_switch(&m_is_lookup),
+		 "disable looking-up for local data")
 		("host,H", po::value<std::string>()->default_value("localhost"),
 		 "host address to connect")
 		("port,P", po::value<std::string>()->default_value("6767"),
@@ -53,7 +57,8 @@ void Application::add_options(po::options_description& desc,
 
 void Application::count_options(po::variables_map& vm)
 {
-	push_bool("save", m_is_save);
+	push_bool("is_save", !m_is_save);
+	push_bool("is_lookup", !m_is_lookup);
 	if (vm.count("host"))
 	{
 		CMDStrArgument* arg = new CMDStrArgument(vm["host"].as<std::string>());
@@ -87,7 +92,7 @@ bool Application::parse_options()
 
 void Application::elevation_test(const std::string& path, const GeoPoint* point)
 {
-	m_dem.read(path);
+	m_dem.read(const_cast<std::string&>(path));
 	int elev = m_dem.get_elevation(point);
 	SysUtil::info({"Elevation at ", std::to_string(point->latitude()), ", ",
 			std::to_string(point->longitude()), " is ", std::to_string(elev)});

@@ -33,6 +33,7 @@ private:
 	int m_argc;
 	char** m_argv;
 	bool m_is_save;
+	bool m_is_lookup;
 	GeotiffReceiver* m_receiver;
 	DigitalElevationMgr& m_dem;
 	CMDArguments& m_cmdargs;
