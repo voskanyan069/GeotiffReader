@@ -1,93 +1,137 @@
+#include <iostream>
+
+#include <boost/program_options.hpp>
+
 #include "application.hpp"
+#include "base/system.hpp"
+#include "base/cmd_argument.hpp"
+#include "geotiff_types/geo_point.hpp"
+#include "geotiff_types/connection_type.hpp"
+#include "geotiff_reader/reader.hpp"
+#include "geotiff_reader/elevation.hpp"
+#include "remote/geotiff_receiver.hpp"
+
+namespace po = boost::program_options;
 
 Application::Application(int argc, char* argv[])
-	: m_argc(argc), m_argv(argv), m_dem(new DigitalElevation())
+	: m_argc(argc)
+	, m_argv(argv)
+	, m_receiver(nullptr)
+	, m_dem(DigitalElevationMgr::instance())
+	, m_cmdargs(CMDArguments::instance())
 {
 }
 
-int Application::ParseOptions()
+void Application::push_bool(const std::string& name, const bool value)
 {
+	CMDArgument<bool>* arg = new CMDArgument<bool>(value);
+    push_argument(name, (ArgumentBase*)(arg));
+}
+
+void Application::push_argument(const std::string& name, ArgumentBase* arg)
+{
+	m_cmdargs.arguments[name] = arg;
+}
+
+void Application::add_options(po::options_description& desc,
+		po::variables_map& vm)
+{
+	desc.add_options()
+		("help,h", "show help message")
+		("save,s", po::bool_switch(&m_is_save),
+		 "save downloaded data")
+		("host,H", po::value<std::string>()->default_value("localhost"),
+		 "host address to connect")
+		("port,P", po::value<std::string>()->default_value("6767"),
+		 "port of the host")
+		("path,p", po::value<std::string>()->default_value("./data/"),
+		 "show help message")
+		;
+	po::store(po::parse_command_line(m_argc, m_argv, desc), vm);
+	po::notify(vm);
+}
+
+void Application::count_options(po::variables_map& vm)
+{
+	push_bool("save", m_is_save);
+	if (vm.count("host"))
+	{
+		CMDStrArgument* arg = new CMDStrArgument(vm["host"].as<std::string>());
+        push_argument("host", (ArgumentBase*)arg);
+	}
+	if (vm.count("port"))
+	{
+		CMDStrArgument* arg = new CMDStrArgument(vm["port"].as<std::string>());
+        push_argument("port", (ArgumentBase*)arg);
+	}
+	if (vm.count("path"))
+	{
+		CMDStrArgument* arg = new CMDStrArgument(vm["path"].as<std::string>());
+        push_argument("path", (ArgumentBase*)arg);
+	}
+}
+
+bool Application::parse_options()
+{
+	po::variables_map vm;
 	po::options_description desc("Allowed options");
-    desc.add_options()
-        ("help", "show help message")
-        ("path", po::value<std::string>()->default_value("./data/"),
-		 		"set path for local data save/load");
-    po::variables_map vm;
-    po::store(po::parse_command_line(m_argc, m_argv, desc), vm);
-    po::notify(vm);
-	if (vm.count("help")) {
-		std::cout << desc << "\n";
-		return 1;
+	add_options(desc, vm);
+	if (vm.count("help"))
+	{
+		std::cout << desc << std::endl;
+		return false;
 	}
-	if (vm.count("path")) {
-		m_path = vm["path"].as<std::string>();
-	}
-	return 0;
+	count_options(vm);
+	return true;
 }
 
-int Application::Execute()
+void Application::elevation_test(const std::string& path, const GeoPoint* point)
 {
-    GeoPoint *pt1 = new GeoPoint(40.7990, 44.5376);
-    GeoPoint *pt2 = new GeoPoint(42.7990, 46.5376);
-    GeoPoint *points[2] = {pt1, pt2};
-	std::string url = initRequest(points);
-    int rc = receiverTest(url, points);
+	m_dem.read(path);
+	int elev = m_dem.get_elevation(point);
+	SysUtil::info({"Elevation at ", std::to_string(point->latitude()), ", ",
+			std::to_string(point->longitude()), " is ", std::to_string(elev)});
+}
+
+void Application::receiver_test(const GeoPoint* points[2])
+{
+	GeoPoint* point = new GeoPoint(42.7990, 45.5376);
+	std::string host = m_cmdargs.find("host")->get<std::string>();
+	std::string port = m_cmdargs.find("port")->get<std::string>();
+	std::string path = m_cmdargs.find("path")->get<std::string>();
+	m_receiver = new GeotiffReceiver(host, port, ConnectionType::LOCAL, path);
+	if (!m_dem.is_points_valid(points))
+	{
+		return;
+	}
+	std::string filename;
+	m_receiver->receive(filename, points);
+	if (!m_dem.is_point_exists(point))
+	{
+		return;
+	}
+	std::string file_path = path + "/" + filename;
+	elevation_test(file_path, point);
+	delete point;
+}
+
+void Application::execute()
+{
+	GeoPoint* pt1 = new GeoPoint(40.7990, 44.5376);
+	GeoPoint* pt2 = new GeoPoint(42.7990, 46.5376);
+	const GeoPoint* points[2] = { pt1, pt2 };
+	receiver_test(points);
 	delete pt1;
 	delete pt2;
-	return rc;
-}
-
-std::string Application::initRequest(GeoPoint *oPoints[2])
-{
-	m_sw = oPoints[0]->String();
-	m_ne = oPoints[1]->String();
-	std::string url_args = "sw=" + m_sw + "&ne=" + m_ne;
-	return url_args;
-}
-
-int Application::receiverTest(const std::string& sUrl, GeoPoint *oPoints[2])
-{
-    GeoPoint *point = new GeoPoint(42.7990, 45.5376);
-	m_receiver = new GeotiffReceiver("localhost", "6767",
-			ConnectionType::LOCAL, m_path);
-	if (!m_dem->IsValidPoints(oPoints)) {
-		return 1;
-	}
-    std::string filename = m_dem->GetFilename(oPoints);
-	if (!m_dem->IsPointExist(*point)) {
-		return 2;
-	}
-	bool isSuccess = m_receiver->Receive(sUrl, filename);
-	if (!isSuccess) {
-		return 3;
-	}
-	m_path += "/" + filename;
-	elevationTest(m_path, *point);
-	delete point;
-	return 0;
-}
-
-void Application::elevationTest(const std::string& sPath,
-		GeoPoint& oPoint)
-{
-	m_dem->ReadFile(sPath);
-    int alt = m_dem->GetElevation(oPoint);
-	std::cout << "Elevation at " << oPoint.Latitude() << ", "
-		<< oPoint.Longitude() << " is " << alt << std::endl;
-}
-
-Application::~Application()
-{
-	delete m_receiver;
-	delete m_dem;
 }
 
 int main(int argc, char* argv[])
 {
-	Application app(argc, argv);
-	int options = app.ParseOptions();
-	if (options) {
-		return options;
+	Application* app = new Application(argc, argv);
+	int options = app->parse_options();
+	if (options)
+	{
+		app->execute();
 	}
-	return app.Execute();
+	return 0;
 }

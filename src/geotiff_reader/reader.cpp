@@ -1,71 +1,81 @@
-#include "geotiff_reader/reader.hpp"
+#include <gdal/gdal_priv.h>
 
-GeotiffReader::GeotiffReader(const std::string& sTiffname)
+#include "geotiff_reader/reader.hpp"
+#include "base/system.hpp"
+
+GeotiffReader::GeotiffReader(const std::string& filename)
+	: m_dataset(nullptr)
+	, m_rows(0)
+	, m_cols(0)
+	, m_levels(0)
+	, m_dimensions(new int[3])
+	, m_geotransform(new double[3])
 {
 	GDALAllRegister();
-
-	m_geotiffDataset = (GDALDataset*) GDALOpen(sTiffname.c_str(), GA_ReadOnly);
-	m_NROWS = GDALGetRasterYSize(m_geotiffDataset);
-	m_NCOLS = GDALGetRasterXSize(m_geotiffDataset);
-	m_NLEVELS = GDALGetRasterCount(m_geotiffDataset);
+	m_dataset = (GDALDataset*) GDALOpen(filename.c_str(), GA_ReadOnly);
+	m_rows = GDALGetRasterYSize(m_dataset);
+	m_cols = GDALGetRasterXSize(m_dataset);
+	m_levels = GDALGetRasterCount(m_dataset);
 }
 
-double* GeotiffReader::GetGeotransform()
+int* GeotiffReader::dimensions()
 {
-    m_geotiffDataset->GetGeoTransform(m_geotransform);
-    return m_geotransform;
+	m_dimensions[0] = m_rows;
+	m_dimensions[1] = m_cols;
+	m_dimensions[2] = m_levels;
+	return m_dimensions;
 }
 
-int* GeotiffReader::GetDimensions()
+double* GeotiffReader::geotransform()
 {
-	m_dimensions[0] = m_NROWS; 
-	m_dimensions[1] = m_NCOLS;
-	m_dimensions[2] = m_NLEVELS; 
-	return m_dimensions;  
-} 
+	m_dataset->GetGeoTransform(m_geotransform);
+	return m_geotransform;
+}
 
-PositionsMatrix GeotiffReader::GetRasterBand(const int& z)
+#include <iostream>
+
+PixelsMatrix GeotiffReader::raster_band(const int& z)
 {
-	PositionsMatrix bandLayer = new float*[m_NROWS];
-	switch(GDALGetRasterDataType(m_geotiffDataset->GetRasterBand(z))) {
-		case  1: return GetArray<unsigned char>(z, bandLayer); 
-		case  2: return GetArray<unsigned short>(z, bandLayer);
-		case  3: return GetArray<short>(z, bandLayer);
-		case  4: return GetArray<unsigned int>(z, bandLayer);
-		case  5: return GetArray<int>(z, bandLayer);
-		case  6: return GetArray<float>(z, bandLayer);
-		case  7: return GetArray<double>(z, bandLayer);
+	PixelsMatrix band_layer = new float*[m_rows];
+	switch(GDALGetRasterDataType(m_dataset->GetRasterBand(z)))
+	{
+		case  1: return get_array<unsigned char>(z, band_layer);
+		case  2: return get_array<unsigned short>(z, band_layer);
+		case  3: return get_array<short>(z, band_layer);
+		case  4: return get_array<unsigned int>(z, band_layer);
+		case  5: return get_array<int>(z, band_layer);
+		case  6: return get_array<float>(z, band_layer);
+		case  7: return get_array<double>(z, band_layer);
 		default: return nullptr;
 	}
 }
 
-template<typename T>
-PositionsMatrix GeotiffReader::GetArray(int iLayerIndex,
-		PositionsMatrix oBandLayer)
+template <typename T>
+PixelsMatrix GeotiffReader::get_array(int layer_idx, PixelsMatrix band_layer)
 {
-	GDALDataType bandType = GDALGetRasterDataType(
-			m_geotiffDataset->GetRasterBand(iLayerIndex));
-	int nbytes = GDALGetDataTypeSizeBytes(bandType);
-	T *rowBuff = (T*) CPLMalloc(nbytes*m_NCOLS);
-
-	for(int row = 0; row < m_NROWS; ++row) {
-		CPLErr e = m_geotiffDataset->GetRasterBand(iLayerIndex)->RasterIO(
-				GF_Read, 0, row, m_NCOLS, 1, rowBuff,
-				m_NCOLS, 1, bandType, 0, 0);
-		if (e) {
-			exit(1);
+	GDALDataType band_type = GDALGetRasterDataType(
+			m_dataset->GetRasterBand(layer_idx));
+	int nbytes = GDALGetDataTypeSizeBytes(band_type);
+	T* row_buff = (T*) CPLMalloc(nbytes * m_cols);
+	for(int row = 0; row < m_rows; ++row)
+	{
+		CPLErr e = m_dataset->GetRasterBand(layer_idx)->RasterIO(GF_Read, 0,
+				row, m_cols, 1, row_buff, m_cols, 1, band_type, 0, 0);
+		if (e)
+		{
+			SysUtil::error("Failed to read tiff file");
 		}
-		oBandLayer[row] = new float[m_NCOLS];
-		for(int col = 0; col < m_NCOLS; ++col) {
-			oBandLayer[row][col] = static_cast<float>(rowBuff[col]);
+		band_layer[row] = new float[m_cols];
+		for(int col = 0; col < m_cols; ++col) {
+			band_layer[row][col] = static_cast<float>(row_buff[col]);
 		}
 	}
-	CPLFree(rowBuff);
-	return oBandLayer;
+	CPLFree(row_buff);
+	return band_layer;
 }
 
 GeotiffReader::~GeotiffReader()
 {
-	GDALClose(m_geotiffDataset);
+	GDALClose(m_dataset);
 	GDALDestroyDriverManager();
 }

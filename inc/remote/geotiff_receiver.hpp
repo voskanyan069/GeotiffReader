@@ -1,56 +1,44 @@
 #ifndef __REMOTE_GEOTIFF_RECEIVER_HPP__
 #define __REMOTE_GEOTIFF_RECEIVER_HPP__
 
-#include <iostream>
-#include <fstream>
-#include <iomanip>
 #include <string>
-#include <sstream>
-#include <openssl/md5.h>
+#include <fstream>
 
-#include <nlohmann/json.hpp>
-#include <boost/asio.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/iostreams/device/mapped_file.hpp>
+#include <curl/curl.h>
 
-#include "remote/connection_type.hpp"
+#include "geotiff_types/connection_type.hpp"
 
-namespace asio = boost::asio;
-namespace fs = boost::filesystem;
-using boost::asio::ip::tcp;
-using json = nlohmann::json;
+class GeoPoint;
+class DigitalElevationMgr;
 
 class GeotiffReceiver
 {
 public:
-	GeotiffReceiver(const std::string& sHost, const std::string& sPort,
-			const ConnectionType& eType, const std::string& sPath);
-	bool Receive(const std::string& sArgs, const std::string& sFilename);
+	GeotiffReceiver(const std::string& host, const std::string& port,
+			const ConnectionType& conn_type, const std::string& path);
 	~GeotiffReceiver();
 
-private:
-	int curlRequest(const std::string& sUrl, bool bVerbose = false);
-	void createConnection();
-	void processResponse();
-	void writeOutput(std::ofstream& fOutput);
-	bool isLoaded(const std::string& sPath);
-	bool download(const std::string& sUrl, const std::string& sFilename);
-	bool sendRequest(const std::string& sUrl);
-	bool checkOutput(const std::string& sPath);
-	bool closeConnection(const std::string& sArgs);
+	void receive(std::string& filename, const GeoPoint* points[2]);
 
 private:
+	void points2args(const GeoPoint* points[2], std::string& args);
+	bool is_host_reachable();
+	void create_connection();
+	static std::size_t process_response(void* content, std::size_t size,
+			std::size_t nmemb, FILE* stream);
+	bool is_loaded(const std::string& path);
+	void download(const std::string& args, FILE* output);
+	void check_output(const CURLcode& ec);
+	void close_connection(const std::string& args);
+
+private:
+	CURL* m_curl;
 	const std::string m_host;
 	const std::string m_port;
+	const std::string m_path;
 	const std::string m_address;
-	const std::string m_savePath;
-	const ConnectionType m_connectionType;
-
-	boost::system::error_code *ec;
-	boost::asio::io_service *ioService;
-	tcp::socket *socket;
-	boost::asio::streambuf *response;
-	std::istream *responseStream;
+	const std::string m_api_base;
+	DigitalElevationMgr& m_dem;
 };
 
 #endif // __REMOTE_GEOTIFF_RECEIVER_HPP__

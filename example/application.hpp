@@ -1,14 +1,15 @@
-#ifndef __APPLICAITON_HPP__
-#define __APPLICAITON_HPP__
+#ifndef __EXAMPLE_APPLICATION_HPP__
+#define __EXAMPLE_APPLICATION_HPP__
 
-#include <iostream>
+#include <string>
+
 #include <boost/program_options.hpp>
 
-#include "geotiff_structures/geo_point.hpp"
-#include "geotiff_structures/geo_pixel.hpp"
-#include "geotiff_reader/elevation.hpp"
-#include "remote/connection_type.hpp"
-#include "remote/geotiff_receiver.hpp"
+class GeoPoint;
+class GeotiffReceiver;
+class DigitalElevationMgr;
+class CMDArguments;
+class ArgumentBase;
 
 namespace po = boost::program_options;
 
@@ -16,23 +17,25 @@ class Application
 {
 public:
 	Application(int argc, char* argv[]);
-	int ParseOptions();
-	int Execute();
-	~Application();
+
+	bool parse_options();
+	void execute();
 
 private:
-	std::string initRequest(GeoPoint* oPoints[2]);
-	int receiverTest(const std::string& sUrl, GeoPoint *oPoints[2]);
-	void elevationTest(const std::string& sPath, GeoPoint& oPoint);
+	void add_options(po::options_description& desc, po::variables_map& vm);
+	void count_options(po::variables_map& vm);
+	void push_bool(const std::string& name, const bool value);
+	void push_argument(const std::string& name, ArgumentBase* arg);
+	void elevation_test(const std::string& path, const GeoPoint* point);
+	void receiver_test(const GeoPoint* points[2]);
 
 private:
 	int m_argc;
 	char** m_argv;
-	std::string m_sw;
-	std::string m_ne;
-	std::string m_path;
+	bool m_is_save;
 	GeotiffReceiver* m_receiver;
-	DigitalElevation* m_dem;
+	DigitalElevationMgr& m_dem;
+	CMDArguments& m_cmdargs;
 };
 
-#endif // __APPLICAITON_HPP__
+#endif // __EXAMPLE_APPLICATION_HPP__

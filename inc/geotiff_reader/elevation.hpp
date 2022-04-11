@@ -1,42 +1,48 @@
 #ifndef __GEOTIFF_READER_ELEVATION_HPP__
 #define __GEOTIFF_READER_ELEVATION_HPP__
 
-#include <cmath>
-#include <iostream>
+#include <string>
 
-#include "geotiff_reader/reader.hpp"
-#include "geotiff_structures/geo_pixel.hpp"
-#include "geotiff_structures/geo_point.hpp"
-#include "geotiff_structures/pixel_size.hpp"
-#include "geotiff_structures/image_size.hpp"
+class GeoPoint;
+class GeoPixel;
+class PixelSize;
+class ImageSize;
+class GeotiffReader;
+typedef float** PixelsMatrix;
 
-class DigitalElevation
+class DigitalElevationMgr
 {
 public:
-	DigitalElevation();
-	int GetElevation(GeoPoint& oPoint);
-	bool IsPointExist(const GeoPoint& oPoint);
-	bool IsValidPoints(GeoPoint** oPoints);
-	void ReadFile(const std::string& sFilename);
-	std::string GetFilename(GeoPoint& oPoint);
-	std::string GetFilename(GeoPoint** oPoints);
-	~DigitalElevation();
+	static DigitalElevationMgr& instance();
+
+	DigitalElevationMgr(const DigitalElevationMgr&) = delete;
+	DigitalElevationMgr& operator=(const DigitalElevationMgr&) = delete;
+	~DigitalElevationMgr();
+
+	void read(const std::string& filename);
+	int get_elevation(const GeoPoint* point);
+	bool is_point_exists(const GeoPoint* point);
+	bool is_points_valid(const GeoPoint** points);
+	void get_filename(std::string& filename, const GeoPoint* point);
+	void get_filename(std::string& filename, const GeoPoint** points);
 
 private:
-	std::string calculateFilename(GeoPoint& oPoint);
-	int elevationFromPixel(const Pixel& oPixel);
-	void calculatePixel(GeoPoint& oPoint, Pixel& oPixel);
-	void calculateLrCorner(const double x, const double y);
+	DigitalElevationMgr();
+
+	void calculate_filename(std::string& filename, const GeoPoint* point);
+	int pixel2elevation(const GeoPixel* pixel);
+	void calculate_pixel(const GeoPoint* point, GeoPixel& pixel);
+	void calculate_corner(const double x, const double y);
 
 private:
-	GeotiffReader* m_file;
-	std::string m_filename;
-	PositionsMatrix m_positions;
-	PixelSize* m_geotransform;
-	ImageSize* m_imageSize;
-	GeoPoint* m_areaCorner;
-	GeoPoint* m_minPoint;
-	GeoPoint* m_maxPoint;
+	std::string m_last_filename;
+	GeoPoint* m_min_point;
+	GeoPoint* m_max_point;
+	GeoPoint* m_area_corner;
+	PixelsMatrix m_pixels;
+	ImageSize* m_image_size;
+	PixelSize* m_pixel_size;
+	GeotiffReader* m_reader;
 };
 
 #endif // __GEOTIFF_READER_ELEVATION_HPP__
