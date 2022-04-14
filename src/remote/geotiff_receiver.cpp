@@ -13,7 +13,7 @@ GeotiffReceiver::GeotiffReceiver(const std::string& host,
 	: m_host(host)
     , m_port(port)
 	, m_curl(curl_easy_init())
-    , m_path(path)
+    , m_root_path(path)
     , m_is_save(false)
     , m_api_base("/api/v1")
 	, m_dem(DigitalElevationMgr::instance())
@@ -22,7 +22,6 @@ GeotiffReceiver::GeotiffReceiver(const std::string& host,
             ? host + ":" + port
             : port + "://" + host)
 {
-	get_options();
 	if (!SysUtil::is_exists(path))
 	{
 		SysUtil::mkdir(path);
@@ -31,14 +30,14 @@ GeotiffReceiver::GeotiffReceiver(const std::string& host,
 
 void GeotiffReceiver::receive(std::string& filename, const GeoPoint* points[2])
 {
+	get_options();
 	filename = "";
 	m_dem.get_filename(filename, points);
-	std::string path = m_path + "/" + filename;
-	if (lookup_data(path))
+	m_path = m_root_path + "/" + filename;
+	if (!lookup_data(m_path))
 	{
-		return;
+		receive_data(points);
 	}
-	receive_data(path, points);
 }
 
 bool GeotiffReceiver::lookup_data(const std::string& path)
@@ -60,14 +59,13 @@ bool GeotiffReceiver::lookup_data(const std::string& path)
 	return rc;
 }
 
-void GeotiffReceiver::receive_data(const std::string& path,
-		const GeoPoint* points[2])
+void GeotiffReceiver::receive_data(const GeoPoint* points[2])
 {
 	std::string args;
-	FILE* output = fopen(path.c_str(), "wb");
+	FILE* output = fopen(m_path.c_str(), "wb");
 	if (!output)
 	{
-		SysUtil::error({"Could not open ", path});
+		SysUtil::error({"Could not open ", m_path});
 	}
 	points2args(points, args);
 	create_connection();
@@ -82,7 +80,7 @@ void GeotiffReceiver::get_options()
 
 	if (!m_is_save)
 	{
-		m_path = "/tmp/";
+		m_root_path = "/tmp/";
 	}
 }
 
@@ -114,11 +112,34 @@ void GeotiffReceiver::create_connection()
 	//}
 }
 
+void GeotiffReceiver::check_status()
+{
+	std::string line;
+	std::ifstream downloaded_file(m_path);
+	if (!downloaded_file.is_open())
+	{
+		SysUtil::error({"Could not open ", m_path});
+	}
+	while (std::getline(downloaded_file, line))
+	{
+		if (std::string::npos != line.find("error"))
+		{
+			if (m_is_save)
+			{
+				SysUtil::remove(m_path);
+			}
+			SysUtil::error("Downloaded file is corrupted, deleting file");
+		}
+	}
+	downloaded_file.close();
+}
+
 void GeotiffReceiver::check_output(const CURLcode& ec)
 {
 	if (CURLE_OK == ec)
 	{
 		SysUtil::info("File was successfuly downloaded");
+		check_status();
 	}
 	else
 	{
@@ -159,7 +180,6 @@ void GeotiffReceiver::close_connection(const std::string& args)
 	std::string url = m_address + m_api_base + "/close_connection?" + args;
 	curl_easy_setopt(m_curl, CURLOPT_URL, url.c_str());
 	ec = curl_easy_perform(m_curl);
-	curl_easy_cleanup(m_curl);
 	if (CURLE_OK == ec)
 	{
 		SysUtil::info("Connection closed");
@@ -168,4 +188,9 @@ void GeotiffReceiver::close_connection(const std::string& args)
 	{
 		SysUtil::error("Failed to close connection");
 	}
+}
+
+GeotiffReceiver::~GeotiffReceiver()
+{
+	curl_easy_cleanup(m_curl);
 }

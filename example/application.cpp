@@ -24,17 +24,6 @@ Application::Application(int argc, char* argv[])
 {
 }
 
-void Application::push_bool(const std::string& name, const bool value)
-{
-	CMDArgument<bool>* arg = new CMDArgument<bool>(value);
-    push_argument(name, (ArgumentBase*)(arg));
-}
-
-void Application::push_argument(const std::string& name, ArgumentBase* arg)
-{
-	m_cmdargs.arguments[name] = arg;
-}
-
 void Application::add_options(po::options_description& desc,
 		po::variables_map& vm)
 {
@@ -57,22 +46,22 @@ void Application::add_options(po::options_description& desc,
 
 void Application::count_options(po::variables_map& vm)
 {
-	push_bool("is_save", !m_is_save);
-	push_bool("is_lookup", !m_is_lookup);
+	m_cmdargs.set_argument("is_save", !m_is_save);
+	m_cmdargs.set_argument("is_lookup", !m_is_lookup);
 	if (vm.count("host"))
 	{
 		CMDStrArgument* arg = new CMDStrArgument(vm["host"].as<std::string>());
-        push_argument("host", (ArgumentBase*)arg);
+        m_cmdargs.set_argument("host", (ArgumentBase*)arg);
 	}
 	if (vm.count("port"))
 	{
 		CMDStrArgument* arg = new CMDStrArgument(vm["port"].as<std::string>());
-        push_argument("port", (ArgumentBase*)arg);
+        m_cmdargs.set_argument("port", (ArgumentBase*)arg);
 	}
 	if (vm.count("path"))
 	{
 		CMDStrArgument* arg = new CMDStrArgument(vm["path"].as<std::string>());
-        push_argument("path", (ArgumentBase*)arg);
+        m_cmdargs.set_argument("path", (ArgumentBase*)arg);
 	}
 }
 

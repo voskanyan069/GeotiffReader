@@ -77,5 +77,4 @@ PixelsMatrix GeotiffReader::get_array(int layer_idx, PixelsMatrix band_layer)
 GeotiffReader::~GeotiffReader()
 {
 	GDALClose(m_dataset);
-	GDALDestroyDriverManager();
 }

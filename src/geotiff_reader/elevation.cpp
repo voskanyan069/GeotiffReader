@@ -70,7 +70,8 @@ void DigitalElevationMgr::calculate_pixel(const GeoPoint* point,
 
 void DigitalElevationMgr::read(std::string& filename)
 {
-	bool is_save = CMDArguments::instance().find("is_save")->get<bool>();
+	auto& cmdargs = CMDArguments::instance();
+	bool is_save = cmdargs.find("is_save")->get<bool>();
 	if (!is_save)
 	{
 		fs::path path(filename);

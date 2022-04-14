@@ -18,6 +18,7 @@ int  cmd_exec(const std::string& cmd);
 // filesystem commands
 bool is_exists(const fs::path& path);
 bool mkdir(const std::string& path);
+bool remove(const fs::path& path);
 
 // logging messages
 void info(const std::string& messages);

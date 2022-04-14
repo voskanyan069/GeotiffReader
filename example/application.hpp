@@ -24,8 +24,6 @@ public:
 private:
 	void add_options(po::options_description& desc, po::variables_map& vm);
 	void count_options(po::variables_map& vm);
-	void push_bool(const std::string& name, const bool value);
-	void push_argument(const std::string& name, ArgumentBase* arg);
 	void elevation_test(const std::string& path, const GeoPoint* point);
 	void receiver_test(const GeoPoint* points[2]);
 

@@ -21,6 +21,17 @@ const ArgumentBase* CMDArguments::find(const std::string& name)
     return it->second;
 }
 
+void CMDArguments::set_argument(const std::string& name, const bool value)
+{
+	CMDArgument<bool>* arg = new CMDArgument<bool>(value);
+	set_argument(name, (ArgumentBase*) arg);
+}
+
+void CMDArguments::set_argument(const std::string& name, ArgumentBase* arg)
+{
+	arguments[name] = arg;
+}
+
 CMDArguments::~CMDArguments()
 {
 }

@@ -28,14 +28,15 @@ public:
 	CMDArguments& operator=(const CMDArguments&) = delete;
 
 	const ArgumentBase* find(const std::string& name);
+	void set_argument(const std::string& name, const bool value);
+	void set_argument(const std::string& name, ArgumentBase* arg);
 
 private:
 	CMDArguments();
 	~CMDArguments();
 
-public:
+private:
 	std::map<std::string, ArgumentBase*> arguments;
-	std::vector<ArgumentBase*> args;
 };
 
 typedef CMDArgument<int>         CMDIntArgument;

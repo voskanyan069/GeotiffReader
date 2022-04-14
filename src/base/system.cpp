@@ -26,6 +26,18 @@ bool SysUtil::mkdir(const std::string& path)
 	return true;
 }
 
+bool SysUtil::remove(const fs::path& path)
+{
+	boost::system::error_code ec;
+	fs::remove(path, ec);
+	if (ec)
+	{
+		warn(ec.message());
+		return false;
+	}
+	return true;
+}
+
 void SysUtil::info(const std::string& message)
 {
 	std::cout << " [@I] " << message << std::endl;

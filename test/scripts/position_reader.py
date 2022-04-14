@@ -54,7 +54,11 @@ def elevation_from_latlon(hgt_file, point):
         pass
 
 if __name__ == '__main__':
-    args = sys.argv[1].split(',')
+    args = 0
+    if sys.argv[0] == "python" or sys.argv[1] == "python3":
+        args = sys.argv[2].split(',')
+    else:
+        args = sys.argv[1].split(',')
     lat = float(args[0])
     lon = float(args[1])
     main(GeoPoint(lat, lon))
