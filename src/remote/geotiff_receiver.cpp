@@ -65,7 +65,7 @@ void GeotiffReceiver::receive_data(const GeoPoint* points[2])
 	FILE* output = fopen(m_path.c_str(), "wb");
 	if (!output)
 	{
-		SysUtil::error({"Could not open ", m_path});
+		SysUtil::error({"Couldn't open ", m_path});
 	}
 	points2args(points, args);
 	create_connection();
@@ -118,7 +118,7 @@ void GeotiffReceiver::check_status()
 	std::ifstream downloaded_file(m_path);
 	if (!downloaded_file.is_open())
 	{
-		SysUtil::error({"Could not open ", m_path});
+		SysUtil::error({"Couldn't open ", m_path});
 	}
 	while (std::getline(downloaded_file, line))
 	{
@@ -144,6 +144,7 @@ void GeotiffReceiver::check_output(const CURLcode& ec)
 	else
 	{
 		std::string error_msg = curl_easy_strerror(ec);
+		SysUtil::remove(m_path);
 		SysUtil::error({"Curl failed: ", error_msg});
 	}
 }

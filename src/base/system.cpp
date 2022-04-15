@@ -2,6 +2,11 @@
 
 #include "base/system.hpp"
 
+#define RESET_CONSOLE	"\033[0m"
+#define INFO_CONSOLE	"\033[32m"
+#define WARN_CONSOLE	"\033[33m"
+#define ERROR_CONSOLE	"\033[31m"
+
 int SysUtil::cmd_exec(const std::string& cmd)
 {
 	int rc = system(cmd.c_str());
@@ -40,47 +45,50 @@ bool SysUtil::remove(const fs::path& path)
 
 void SysUtil::info(const std::string& message)
 {
-	std::cout << " [@I] " << message << std::endl;
+	std::cout << INFO_CONSOLE << " [@I] " << message
+		<< RESET_CONSOLE << std::endl;
 }
 
 void SysUtil::warn(const std::string& message)
 {
-	std::cout << " [@W] " << message << std::endl;
+	std::cout << WARN_CONSOLE << " [@W] " << message
+		<< RESET_CONSOLE << std::endl;
 }
 
 void SysUtil::error(const std::string& message)
 {
-	std::cout << " [@E] " << message << std::endl;
+	std::cout << ERROR_CONSOLE << " [@E] " << message
+		<< RESET_CONSOLE << std::endl;
 	std::exit(-1);
 }
 
 void SysUtil::info(const Strings& messages)
 {
-	std::cout << " [@I] ";
+	std::cout << INFO_CONSOLE << " [@I] ";
 	for (const auto msg : messages)
 	{
 		std::cout << msg;
 	}
-	std::cout << std::endl;
+	std::cout << RESET_CONSOLE << std::endl;
 }
 
 void SysUtil::warn(const Strings& messages)
 {
-	std::cout << " [@W] ";
+	std::cout << WARN_CONSOLE << " [@W] ";
 	for (const auto msg : messages)
 	{
 		std::cout << msg;
 	}
-	std::cout << std::endl;
+	std::cout << RESET_CONSOLE << std::endl;
 }
 
 void SysUtil::error(const Strings& messages)
 {
-	std::cout << " [@E] ";
+	std::cout << ERROR_CONSOLE << " [@E] ";
 	for (const auto msg : messages)
 	{
 		std::cout << msg;
 	}
-	std::cout << std::endl;
+	std::cout << RESET_CONSOLE << std::endl;
 	std::exit(-1);
 }
