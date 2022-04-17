@@ -145,9 +145,4 @@ DigitalElevationMgr::~DigitalElevationMgr()
 	delete m_image_size;
 	delete m_pixel_size;
 	delete m_area_corner;
-	//for (int i = 0; i < m_image_rows; ++i)
-	//{
-	//	delete[] m_pixels[i];
-	//}
-	//delete[] m_pixels;
 }
