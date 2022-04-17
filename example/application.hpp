@@ -17,6 +17,7 @@ class Application
 {
 public:
 	Application(int argc, char* argv[]);
+	~Application();
 
 	bool parse_options();
 	void execute();

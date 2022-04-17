@@ -8,55 +8,47 @@ GeotiffReader::GeotiffReader(const std::string& filename)
 	, m_rows(0)
 	, m_cols(0)
 	, m_levels(0)
-	, m_dimensions(new int[3])
-	, m_geotransform(new double[3])
 {
 	GDALAllRegister();
 	m_dataset = (GDALDataset*) GDALOpen(filename.c_str(), GA_ReadOnly);
 	m_rows = GDALGetRasterYSize(m_dataset);
 	m_cols = GDALGetRasterXSize(m_dataset);
 	m_levels = GDALGetRasterCount(m_dataset);
+	m_bandlayer = new float*[m_rows];
 }
 
-int* GeotiffReader::dimensions()
+void GeotiffReader::image_dimensions(int& width, int& height)
 {
-	m_dimensions[0] = m_rows;
-	m_dimensions[1] = m_cols;
-	m_dimensions[2] = m_levels;
-	return m_dimensions;
+	width = m_rows;
+	height = m_cols;
 }
 
-double* GeotiffReader::geotransform()
+void GeotiffReader::geotransform(double& px_width, double& px_height,
+		double& min_x, double& max_y)
 {
-	m_dataset->GetGeoTransform(m_geotransform);
-	return m_geotransform;
+	double* gt = new double[6];
+	m_dataset->GetGeoTransform(gt);
+	px_width = gt[1];
+	px_height = gt[5];
+	min_x = gt[0];
+	max_y = gt[3];
+	delete[] gt;
 }
 
-#include <iostream>
-
-PixelsMatrix GeotiffReader::raster_band(const int& z)
+PixelsMatrix GeotiffReader::raster_band()
 {
-	PixelsMatrix band_layer = new float*[m_rows];
-	switch(GDALGetRasterDataType(m_dataset->GetRasterBand(z)))
-	{
-		case  1: return get_array<unsigned char>(z, band_layer);
-		case  2: return get_array<unsigned short>(z, band_layer);
-		case  3: return get_array<short>(z, band_layer);
-		case  4: return get_array<unsigned int>(z, band_layer);
-		case  5: return get_array<int>(z, band_layer);
-		case  6: return get_array<float>(z, band_layer);
-		case  7: return get_array<double>(z, band_layer);
-		default: return nullptr;
-	}
+	const int z = 1;
+	GDALGetRasterDataType(m_dataset->GetRasterBand(z));
+	get_array(z);
+	return m_bandlayer;
 }
 
-template <typename T>
-PixelsMatrix GeotiffReader::get_array(int layer_idx, PixelsMatrix band_layer)
+void GeotiffReader::get_array(int layer_idx)
 {
 	GDALDataType band_type = GDALGetRasterDataType(
 			m_dataset->GetRasterBand(layer_idx));
 	int nbytes = GDALGetDataTypeSizeBytes(band_type);
-	T* row_buff = (T*) CPLMalloc(nbytes * m_cols);
+	short* row_buff = (short*) CPLMalloc(nbytes * m_cols);
 	for(int row = 0; row < m_rows; ++row)
 	{
 		CPLErr e = m_dataset->GetRasterBand(layer_idx)->RasterIO(GF_Read, 0,
@@ -65,16 +57,20 @@ PixelsMatrix GeotiffReader::get_array(int layer_idx, PixelsMatrix band_layer)
 		{
 			SysUtil::error("Failed to read tiff file");
 		}
-		band_layer[row] = new float[m_cols];
+		m_bandlayer[row] = new float[m_cols];
 		for(int col = 0; col < m_cols; ++col) {
-			band_layer[row][col] = static_cast<float>(row_buff[col]);
+			m_bandlayer[row][col] = static_cast<float>(row_buff[col]);
 		}
 	}
 	CPLFree(row_buff);
-	return band_layer;
 }
 
 GeotiffReader::~GeotiffReader()
 {
+	for (int i = 0; i < m_rows; ++i)
+	{
+		delete[] m_bandlayer[i];
+	}
+	delete[] m_bandlayer;
 	GDALClose(m_dataset);
 }

@@ -12,19 +12,18 @@ public:
 	GeotiffReader(const std::string& filename);
 	~GeotiffReader();
 	
-	int* dimensions();
-	double* geotransform();
-	PixelsMatrix raster_band(const int& z);
-	template <typename T>
-	PixelsMatrix get_array(int layer_idx, PixelsMatrix band_layer);
+	void image_dimensions(int& row, int& col);
+	void geotransform(double& px_width, double& px_height,
+			double& min_x, double& max_y);
+	PixelsMatrix raster_band();
+	void get_array(int layer_idx);
 
 private:
 	GDALDataset* m_dataset;
 	int m_rows;
 	int m_cols;
 	int m_levels;
-	int* m_dimensions;
-	double* m_geotransform;
+	PixelsMatrix m_bandlayer;
 };
 
 #endif // __GEOTIFF_READER_READER_HPP__

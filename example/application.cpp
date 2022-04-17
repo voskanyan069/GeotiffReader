@@ -119,6 +119,11 @@ void Application::execute()
 	delete pt2;
 }
 
+Application::~Application()
+{
+	delete m_receiver;
+}
+
 int main(int argc, char* argv[])
 {
 	Application* app = new Application(argc, argv);
@@ -127,5 +132,6 @@ int main(int argc, char* argv[])
 	{
 		app->execute();
 	}
+	delete app;
 	return 0;
 }

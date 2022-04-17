@@ -18,7 +18,7 @@ const ArgumentBase* CMDArguments::find(const std::string& name)
     {
         throw std::runtime_error(name + " not found");
     }
-    return it->second;
+    return it->second.get();
 }
 
 void CMDArguments::set_argument(const std::string& name, const bool value)
@@ -29,7 +29,7 @@ void CMDArguments::set_argument(const std::string& name, const bool value)
 
 void CMDArguments::set_argument(const std::string& name, ArgumentBase* arg)
 {
-	arguments[name] = arg;
+	arguments[name] = std::unique_ptr<ArgumentBase>(arg);
 }
 
 CMDArguments::~CMDArguments()

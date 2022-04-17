@@ -36,7 +36,7 @@ private:
 	~CMDArguments();
 
 private:
-	std::map<std::string, ArgumentBase*> arguments;
+	std::map<std::string, std::unique_ptr<ArgumentBase> > arguments;
 };
 
 typedef CMDArgument<int>         CMDIntArgument;

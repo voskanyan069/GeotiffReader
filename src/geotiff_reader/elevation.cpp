@@ -8,7 +8,8 @@
 #include "geotiff_types/image_size.hpp"
 
 DigitalElevationMgr::DigitalElevationMgr()
-	: m_reader(nullptr)
+	: m_image_rows(0)
+	, m_reader(nullptr)
 	, m_area_corner(nullptr)
 	, m_min_point(nullptr)
 	, m_max_point(nullptr)
@@ -44,9 +45,9 @@ void DigitalElevationMgr::calculate_corner(const double x, const double y)
 	m_area_corner = new GeoPoint(lat, lon);
 }
 
-int DigitalElevationMgr::pixel2elevation(const GeoPixel* pixel)
+int DigitalElevationMgr::pixel2elevation(const GeoPixel& pixel)
 {
-	int pos = m_pixels[pixel->row()][pixel->col()];
+	int pos = m_pixels[pixel.row()][pixel.col()];
 	return pos;
 }
 
@@ -70,8 +71,7 @@ void DigitalElevationMgr::calculate_pixel(const GeoPoint* point,
 
 void DigitalElevationMgr::read(std::string& filename)
 {
-	auto& cmdargs = CMDArguments::instance();
-	bool is_save = cmdargs.find("is_save")->get<bool>();
+	bool is_save = CMDArguments::instance().find("is_save")->get<bool>();
 	if (!is_save)
 	{
 		fs::path path(filename);
@@ -80,16 +80,17 @@ void DigitalElevationMgr::read(std::string& filename)
 	SysUtil::info({"Reading ", filename});
 	if (filename != m_last_filename)
 	{
-		delete m_reader;
 		m_reader = new GeotiffReader(filename);
 		m_last_filename = filename;
 	}
-	m_pixels = m_reader->raster_band(1);
-	int* dm = m_reader->dimensions();
-	double* gt = m_reader->geotransform();
-	m_pixel_size = new PixelSize(gt[1], gt[5]);
-	m_image_size = new ImageSize(dm[0], dm[1]);
-	calculate_corner(gt[0], gt[3]);
+	m_pixels = m_reader->raster_band();
+	int image_cols;
+	double px_width, px_height, min_x, max_y;
+	m_reader->image_dimensions(m_image_rows, image_cols);
+	m_reader->geotransform(px_width, px_height, min_x, max_y);
+	m_pixel_size = new PixelSize(px_width, px_height);
+	m_image_size = new ImageSize(m_image_rows, image_cols);
+	calculate_corner(min_x, max_y);
 }
 
 bool DigitalElevationMgr::is_points_valid(const GeoPoint** points)
@@ -132,7 +133,7 @@ int DigitalElevationMgr::get_elevation(const GeoPoint* point)
 {
 	GeoPixel pixel;
 	calculate_pixel(point, pixel);
-	int elev = pixel2elevation(&pixel);
+	int elev = pixel2elevation(pixel);
 	return elev;
 }
 
@@ -144,5 +145,9 @@ DigitalElevationMgr::~DigitalElevationMgr()
 	delete m_image_size;
 	delete m_pixel_size;
 	delete m_area_corner;
-	delete[] m_pixels;
+	//for (int i = 0; i < m_image_rows; ++i)
+	//{
+	//	delete[] m_pixels[i];
+	//}
+	//delete[] m_pixels;
 }

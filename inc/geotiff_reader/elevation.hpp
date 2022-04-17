@@ -30,11 +30,12 @@ private:
 	DigitalElevationMgr();
 
 	void calculate_filename(std::string& filename, const GeoPoint* point);
-	int pixel2elevation(const GeoPixel* pixel);
+	int pixel2elevation(const GeoPixel& pixel);
 	void calculate_pixel(const GeoPoint* point, GeoPixel& pixel);
 	void calculate_corner(const double x, const double y);
 
 private:
+	int m_image_rows;
 	std::string m_last_filename;
 	GeoPoint* m_min_point;
 	GeoPoint* m_max_point;
