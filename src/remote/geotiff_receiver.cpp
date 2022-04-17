@@ -1,6 +1,3 @@
-#include <iostream>
-#include <exception>
-
 #include "base/system.hpp"
 #include "base/cmd_argument.hpp"
 #include "remote/geotiff_receiver.hpp"
