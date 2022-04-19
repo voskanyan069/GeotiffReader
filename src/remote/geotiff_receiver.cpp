@@ -53,6 +53,10 @@ bool GeotiffReceiver::lookup_data(const std::string& path)
 			SysUtil::warn("Local data has not been found");
 		}
 	}
+	else
+	{
+		SysUtil::info("Lookup for local data was disabled");
+	}
 	return rc;
 }
 
@@ -67,7 +71,6 @@ void GeotiffReceiver::receive_data(const GeoPoint* points[2])
 	points2args(points, args);
 	create_connection();
 	download(args, output);
-	close_connection(args);
 }
 
 void GeotiffReceiver::get_options()
@@ -170,22 +173,6 @@ void GeotiffReceiver::download(const std::string& args, FILE* output)
 	ec = curl_easy_perform(m_curl);
 	fclose(output);
 	check_output(ec);
-}
-
-void GeotiffReceiver::close_connection(const std::string& args)
-{
-	CURLcode ec = CURLE_OK;
-	std::string url = m_address + m_api_base + "/close_connection?" + args;
-	curl_easy_setopt(m_curl, CURLOPT_URL, url.c_str());
-	ec = curl_easy_perform(m_curl);
-	if (CURLE_OK == ec)
-	{
-		SysUtil::info("Connection closed");
-	}
-	else
-	{
-		SysUtil::error("Failed to close connection");
-	}
 }
 
 GeotiffReceiver::~GeotiffReceiver()

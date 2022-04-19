@@ -34,7 +34,6 @@ private:
 	void download(const std::string& args, FILE* output);
 	void check_status();
 	void check_output(const CURLcode& ec);
-	void close_connection(const std::string& args);
 
 private:
 	CURL* m_curl;
