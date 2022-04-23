@@ -32,7 +32,7 @@ private:
 			std::size_t nmemb, FILE* stream);
 	bool is_loaded(const std::string& path);
 	void download(const std::string& args, FILE* output);
-	void check_status();
+	void check_content();
 	void check_output(const CURLcode& ec);
 
 private:

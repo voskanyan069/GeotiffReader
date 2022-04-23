@@ -112,41 +112,33 @@ void GeotiffReceiver::create_connection()
 	//}
 }
 
-void GeotiffReceiver::check_status()
+void GeotiffReceiver::check_content()
 {
-	std::string line;
-	std::ifstream downloaded_file(m_path);
-	if (!downloaded_file.is_open())
-	{
-		SysUtil::error({"Couldn't open ", m_path});
-	}
-	while (std::getline(downloaded_file, line))
-	{
-		if (std::string::npos != line.find("error"))
-		{
-			if (m_is_save)
-			{
-				SysUtil::remove(m_path);
-			}
-			SysUtil::error("Downloaded file is corrupted, deleting file");
-		}
-	}
-	downloaded_file.close();
+    char* ct = NULL;
+    int res = curl_easy_getinfo(m_curl, CURLINFO_CONTENT_TYPE, &ct);
+    if (res || !ct)
+    {
+        SysUtil::error("Invalid request was sent");
+    }
+    if (strcmp(ct, "image/tiff") != 0)
+    {
+        SysUtil::error("Response content type is not supported");
+    }
+    SysUtil::info("File was successfuly downloaded");
 }
 
 void GeotiffReceiver::check_output(const CURLcode& ec)
 {
-	if (CURLE_OK == ec)
-	{
-		SysUtil::info("File was successfuly downloaded");
-		check_status();
-	}
-	else
+	if (CURLE_OK != ec)
 	{
 		std::string error_msg = curl_easy_strerror(ec);
-		SysUtil::remove(m_path);
+        if (m_is_lookup)
+        {
+		    SysUtil::remove(m_path);
+        }
 		SysUtil::error({"Curl failed: ", error_msg});
 	}
+	check_content();
 }
 
 std::size_t GeotiffReceiver::process_response(void* content, std::size_t size,
