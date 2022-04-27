@@ -25,7 +25,8 @@ public:
 private:
 	void add_options(po::options_description& desc, po::variables_map& vm);
 	void count_options(po::variables_map& vm);
-	void elevation_test(const std::string& path, const GeoPoint* point);
+    void create_point(const std::string& position);
+	void elevation_test(const std::string& path);
 	void receiver_test(const GeoPoint* points[2]);
 
 private:
@@ -33,6 +34,7 @@ private:
 	char** m_argv;
 	bool m_is_save;
 	bool m_is_lookup;
+    GeoPoint* m_point;
 	GeotiffReceiver* m_receiver;
 	DigitalElevationMgr& m_dem;
 	CMDArguments& m_cmdargs;

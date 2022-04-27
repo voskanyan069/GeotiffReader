@@ -1,21 +1,16 @@
+#include <math.h>
+
 #include "base/system.hpp"
 #include "base/cmd_argument.hpp"
 #include "geotiff_reader/elevation.hpp"
 #include "geotiff_reader/reader.hpp"
 #include "geotiff_types/geo_point.hpp"
 #include "geotiff_types/geo_pixel.hpp"
-#include "geotiff_types/pixel_size.hpp"
-#include "geotiff_types/image_size.hpp"
 
 DigitalElevationMgr::DigitalElevationMgr()
-	: m_image_rows(0)
-	, m_reader(nullptr)
-	, m_area_corner(nullptr)
+	: m_reader(nullptr)
 	, m_min_point(nullptr)
 	, m_max_point(nullptr)
-	, m_image_size(nullptr)
-	, m_pixel_size(nullptr)
-	, m_pixels(nullptr)
 {
 }
 
@@ -38,32 +33,19 @@ void DigitalElevationMgr::calculate_filename(std::string& filename,
 	filename += fname;
 }
 
-void DigitalElevationMgr::calculate_corner(const double x, const double y)
-{
-	double lat = y - (m_image_size->height() * m_pixel_size->y());
-	double lon = x + (m_image_size->width() * m_pixel_size->x());
-	m_area_corner = new GeoPoint(lat, lon);
-}
-
 int DigitalElevationMgr::pixel2elevation(const GeoPixel& pixel)
 {
-	int pos = m_pixels[pixel.row()][pixel.col()];
+	int pos = m_reader->value_at(pixel.row(), pixel.col());
 	return pos;
 }
 
-void DigitalElevationMgr::calculate_pixel(const GeoPoint* point,
-		GeoPixel& pixel)
+void DigitalElevationMgr::calculate_pixel(const GeoPoint* pt, GeoPixel& pixel)
 {
-	int width = m_image_size->width();
-	int height = m_image_size->height();
-	double lat = point->latitude();
-	double lon = point->longitude();
-	double x = m_area_corner->latitude();
-	double y = m_area_corner->longitude();
-	double x_pixel = m_pixel_size->x();
-	double y_pixel = m_pixel_size->y();
-	int row = width - (double)((lat - x) / x_pixel);
-	int col = height - (double)((y - lon) / y_pixel);
+	double lat = pt->latitude();
+	double lon = pt->longitude();
+    double* gt = m_reader->inv_geotransform();
+    int row = static_cast<int>(floor(gt[0] + gt[1] * lon + gt[2] * lat));
+    int col = static_cast<int>(floor(gt[3] + gt[4] * lon + gt[5] * lat));
 	GeoPixel* tmp_px = new GeoPixel(row, col);
 	pixel = *tmp_px;
 	delete tmp_px;
@@ -83,14 +65,7 @@ void DigitalElevationMgr::read(std::string& filename)
 		m_reader = new GeotiffReader(filename);
 		m_last_filename = filename;
 	}
-	m_pixels = m_reader->raster_band();
-	int image_cols;
-	double px_width, px_height, min_x, max_y;
-	m_reader->image_dimensions(m_image_rows, image_cols);
-	m_reader->geotransform(px_width, px_height, min_x, max_y);
-	m_pixel_size = new PixelSize(px_width, px_height);
-	m_image_size = new ImageSize(m_image_rows, image_cols);
-	calculate_corner(min_x, max_y);
+	m_reader->read_data();
 }
 
 bool DigitalElevationMgr::is_points_valid(const GeoPoint** points)
@@ -142,7 +117,4 @@ DigitalElevationMgr::~DigitalElevationMgr()
 	delete m_reader;
 	delete m_min_point;
 	delete m_max_point;
-	delete m_image_size;
-	delete m_pixel_size;
-	delete m_area_corner;
 }

@@ -4,6 +4,7 @@
 #include <string>
 
 class GDALDataset;
+class GDALRasterBand;
 typedef float** PixelsMatrix;
 
 class GeotiffReader
@@ -12,18 +13,24 @@ public:
 	GeotiffReader(const std::string& filename);
 	~GeotiffReader();
 	
-	void image_dimensions(int& row, int& col);
-	void geotransform(double& px_width, double& px_height,
-			double& min_x, double& max_y);
-	PixelsMatrix raster_band();
+	double* geotransform();
+    double* inv_geotransform();
+    void read_data();
+    int value_at(const int x, const int y);
+
+private:
 	void get_array(int layer_idx);
 
 private:
-	GDALDataset* m_dataset;
 	int m_rows;
 	int m_cols;
 	int m_levels;
+    double* m_geotransform;
+    double* m_invgeotransform;
+    bool m_is_geotransform_read;
 	PixelsMatrix m_bandlayer;
+	GDALDataset* m_dataset;
+    GDALRasterBand* m_band;
 };
 
 #endif // __GEOTIFF_READER_READER_HPP__
