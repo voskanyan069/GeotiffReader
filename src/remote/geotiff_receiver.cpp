@@ -4,6 +4,8 @@
 #include "geotiff_reader/elevation.hpp"
 #include "geotiff_types/geo_point.hpp"
 
+#include <sstream>
+
 GeotiffReceiver::GeotiffReceiver(const std::string& host,
 		const std::string& port, const ConnectionType& conn_type,
 		const std::string& path)
@@ -112,15 +114,32 @@ void GeotiffReceiver::create_connection()
 	//}
 }
 
+void GeotiffReceiver::process_json_error()
+{
+    std::ifstream json(m_path);
+    if (json.is_open())
+    {
+        std::stringstream ss;
+        ss << "Request failed with this output" << std::endl;
+        ss << json.rdbuf();
+        SysUtil::error(ss.str());
+    }
+}
+
 void GeotiffReceiver::check_content()
 {
-    char* ct = NULL;
+    char* ct = nullptr;
     int res = curl_easy_getinfo(m_curl, CURLINFO_CONTENT_TYPE, &ct);
+    std::string err_message;
     if (res || !ct)
     {
         SysUtil::error("Invalid request was sent");
     }
-    if (strcmp(ct, "image/tiff") != 0)
+    else if (strcmp(ct, "application/json") == 0)
+    {
+        process_json_error();
+    }
+    else if (strcmp(ct, "image/tiff") != 0)
     {
         SysUtil::error("Response content type is not supported");
     }
@@ -129,6 +148,7 @@ void GeotiffReceiver::check_content()
 
 void GeotiffReceiver::check_output(const CURLcode& ec)
 {
+    check_content();
 	if (CURLE_OK != ec)
 	{
 		std::string error_msg = curl_easy_strerror(ec);
@@ -138,7 +158,6 @@ void GeotiffReceiver::check_output(const CURLcode& ec)
         }
 		SysUtil::error({"Curl failed: ", error_msg});
 	}
-	check_content();
 }
 
 std::size_t GeotiffReceiver::process_response(void* content, std::size_t size,
