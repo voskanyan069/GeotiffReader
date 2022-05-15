@@ -113,8 +113,8 @@ void Application::elevation_test(const std::string& path)
 {
 	m_dem.read(const_cast<std::string&>(path));
 	int elev = m_dem.get_elevation(m_point);
-	SysUtil::info({"Elevation at ", std::to_string(m_point->latitude()), ", ",
-			std::to_string(m_point->longitude()), " is ",std::to_string(elev)});
+	SysUtil::info({"Elevation at ", m_point->to_string(), " is ",
+            std::to_string(elev)});
 }
 
 void Application::receiver_test(const GeoPoint* points[2])
@@ -122,15 +122,19 @@ void Application::receiver_test(const GeoPoint* points[2])
 	std::string host = m_cmdargs.find("host")->get<std::string>();
 	std::string port = m_cmdargs.find("port")->get<std::string>();
 	std::string path = m_cmdargs.find("path")->get<std::string>();
-	m_receiver = new GeotiffReceiver(host, port, ConnectionType::LOCAL, path);
 	if (!m_dem.is_points_valid(points))
 	{
+        SysUtil::error("The points range for data downloading is incorrect.");
 		return;
 	}
+	m_receiver = new GeotiffReceiver(host, port, ConnectionType::LOCAL, path);
 	std::string filename;
+	m_dem.get_filename(filename, points);
 	m_receiver->receive(filename, points);
 	if (!m_dem.is_point_exists(m_point))
 	{
+        SysUtil::error({m_point->to_string(),
+                " location does not contains in provided range."});
 		return;
 	}
 	std::string file_path = path + "/" + filename;

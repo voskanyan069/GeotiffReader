@@ -27,11 +27,9 @@ GeotiffReceiver::GeotiffReceiver(const std::string& host,
 	}
 }
 
-void GeotiffReceiver::receive(std::string& filename, const GeoPoint* points[2])
+void GeotiffReceiver::receive(const std::string& filename, const GeoPoint* points[2])
 {
 	get_options();
-	filename = "";
-	m_dem.get_filename(filename, points);
 	m_path = m_root_path + "/" + filename;
 	if (!lookup_data(m_path))
 	{

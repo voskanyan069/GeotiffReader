@@ -19,7 +19,7 @@ public:
 			const ConnectionType& conn_type, const std::string& path);
 	~GeotiffReceiver();
 
-	void receive(std::string& filename, const GeoPoint* points[2]);
+	void receive(const std::string& filename, const GeoPoint* points[2]);
 
 private:
 	void get_options();
