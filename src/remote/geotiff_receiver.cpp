@@ -2,9 +2,17 @@
 #include "base/cmd_argument.hpp"
 #include "remote/geotiff_receiver.hpp"
 #include "geotiff_reader/elevation.hpp"
+#include "geotiff_types/geo_exception.hpp"
 #include "geotiff_types/geo_point.hpp"
 
 #include <sstream>
+
+//#include <stdio.h>
+//#include <sys/types.h>
+//#include <sys/socket.h>
+//#include <netinet/in.h>
+//#include <arpa/inet.h>
+//#include <errno.h>
 
 GeotiffReceiver::GeotiffReceiver(const std::string& host,
 		const std::string& port, const ConnectionType& conn_type,
@@ -66,7 +74,8 @@ void GeotiffReceiver::receive_data(const GeoPoint* points[2])
 	FILE* output = fopen(m_path.c_str(), "wb");
 	if (!output)
 	{
-		SysUtil::error({"Couldn't open ", m_path});
+        std::string msg = "could not open " + m_path;
+		throw GeoException(msg, 2);
 	}
 	points2args(points, args);
 	create_connection();
@@ -97,19 +106,37 @@ bool GeotiffReceiver::is_loaded(const std::string& path)
 
 bool GeotiffReceiver::is_host_reachable()
 {
-	std::string cmd = "ping " + m_address;
-	bool rc = SysUtil::cmd_exec(cmd);
-	return rc;
+    //size_t pos = m_host.find("http");
+    //if (std::string::npos != pos)
+    //{
+    //    SysUtil::warn("Http host testing not supporting yet *skipping step*");
+    //    return true;
+    //}
+    //int port = std::stoi(m_port);
+    //bool rc = true;
+    //int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    //struct sockaddr_in sin;
+    //sin.sin_family = AF_INET;
+    //sin.sin_port   = htons(std::stoi(m_port));
+    //inet_pton(AF_INET, m_host.c_str(), &sin.sin_addr);
+    //if (connect(sockfd, (struct sockaddr *) &sin, sizeof(sin)) == -1)
+    //{
+    //    return false;
+    //}
+	return true;
 }
 
 void GeotiffReceiver::create_connection()
 {
-	SysUtil::info({"Connecting to the ", m_address, " address..."});
-	//bool rc = is_host_reachable();
-	//if (!rc)
-	//{
-	//	SysUtil::error("Host is not reachable");
-	//}
+	SysUtil::info({"Trying to connect to the ", m_address, " address..."});
+	bool rc = is_host_reachable();
+	if (!rc)
+	{
+        std::string msg = "host is not reachable: ";
+        msg += strerror(errno);
+        throw GeoException(msg, errno);
+	}
+	SysUtil::info("Connected to the server");
 }
 
 void GeotiffReceiver::process_json_error()
@@ -117,10 +144,12 @@ void GeotiffReceiver::process_json_error()
     std::ifstream json(m_path);
     if (json.is_open())
     {
-        std::stringstream ss;
-        ss << "Request failed with this output" << std::endl;
-        ss << json.rdbuf();
-        SysUtil::error(ss.str());
+        //std::stringstream ss;
+        //ss << "request failed with this output" << std::endl;
+        //ss << json.rdbuf();
+        //std::string msg = ss.str();
+        std::string msg = "request failed";
+        throw GeoException(msg, 3);
     }
 }
 
@@ -131,7 +160,7 @@ void GeotiffReceiver::check_content()
     std::string err_message;
     if (res || !ct)
     {
-        SysUtil::error("Invalid request was sent");
+        throw GeoException("invalid request was sent", 4);
     }
     else if (strcmp(ct, "application/json") == 0)
     {
@@ -139,7 +168,7 @@ void GeotiffReceiver::check_content()
     }
     else if (strcmp(ct, "image/tiff") != 0)
     {
-        SysUtil::error("Response content type is not supported");
+        throw GeoException("response content type is not supported", 5);
     }
     SysUtil::info("File was successfuly downloaded");
 }
@@ -154,7 +183,8 @@ void GeotiffReceiver::check_output(const CURLcode& ec)
         {
 		    SysUtil::remove(m_path);
         }
-		SysUtil::error({"Curl failed: ", error_msg});
+        std::string msg = "curl failed: " + error_msg;
+		throw GeoException(msg, 6);
 	}
 }
 
@@ -169,7 +199,7 @@ void GeotiffReceiver::download(const std::string& args, FILE* output)
 {
 	if (!m_curl)
 	{
-		SysUtil::error("could not init curl");
+		throw GeoException("could not init curl", 7);
 	}
 	CURLcode ec = CURLE_OK;
 	std::string url = m_address + m_api_base + "/polygon?" + args;

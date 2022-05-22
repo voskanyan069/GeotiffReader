@@ -1,14 +1,44 @@
 #include <string>
 #include <cmath>
 
+#include "geotiff_types/geo_exception.hpp"
 #include "geotiff_types/geo_pixel.hpp"
 #include "geotiff_types/geo_point.hpp"
 #include "geotiff_types/image_size.hpp"
 #include "geotiff_types/pixel_size.hpp"
 
-/////////////////////////////
-// GeoPixel implementation //
-/////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//                        GeoException implementation                         //
+////////////////////////////////////////////////////////////////////////////////
+
+GeoException::GeoException(const std::string& msg, const int ec)
+    : m_message(msg)
+    , m_error_code(ec)
+{
+}
+
+GeoException::~GeoException()
+{
+}
+
+const char* GeoException::what() const noexcept
+{
+    return m_message.c_str();
+}
+
+const int GeoException::get_code() const
+{
+    return m_error_code;
+}
+
+const std::string GeoException::get_message() const
+{
+    return m_message;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                          GeoPixel implementation                           //
+////////////////////////////////////////////////////////////////////////////////
 
 GeoPixel::GeoPixel()
 	: m_row(0)
@@ -32,9 +62,9 @@ int GeoPixel::col() const
 	return m_col;
 }
 
-/////////////////////////////
-// GeoPoint implementation //
-/////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//                          GeoPoint implementation                           //
+////////////////////////////////////////////////////////////////////////////////
 
 GeoPoint::GeoPoint(const double lat, const double lon)
 	: m_latitude(lat)
@@ -89,9 +119,9 @@ bool operator>(const GeoPoint& l, const GeoPoint& r)
 	return lat || lon;
 }
 
-//////////////////////////////
-// ImageSize implementation //
-//////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//                          ImageSize implementation                          //
+////////////////////////////////////////////////////////////////////////////////
 
 ImageSize::ImageSize(const int w, const int h)
 	: m_width(w)
@@ -109,9 +139,9 @@ int ImageSize::height() const
 	return m_height;
 }
 
-//////////////////////////////
-// PixelSize implementation //
-//////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//                          PixelSize implementation                          //
+////////////////////////////////////////////////////////////////////////////////
 
 PixelSize::PixelSize(const double x, const double y)
 	: m_x(x)
