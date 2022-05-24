@@ -3,7 +3,7 @@
 #include <boost/program_options.hpp>
 
 #include "application.hpp"
-#include "base/system.hpp"
+#include "utils/log.hpp"
 #include "base/cmd_argument.hpp"
 #include "geotiff_types/geo_point.hpp"
 #include "geotiff_types/connection_type.hpp"
@@ -16,6 +16,7 @@ namespace po = boost::program_options;
 Application::Application(int argc, char* argv[])
 	: m_argc(argc)
 	, m_argv(argv)
+	, m_is_verbose(false)
 	, m_is_save(true)
 	, m_is_lookup(true)
     , m_point(nullptr)
@@ -30,6 +31,8 @@ void Application::add_options(po::options_description& desc,
 {
 	desc.add_options()
 		("help,h", "show help message")
+		("verbose,v", po::bool_switch(&m_is_verbose),
+         "show output messages")
 		("no-save,s", po::bool_switch(&m_is_save),
 		 "disable saving of downloaded data")
 		("no-local,L", po::bool_switch(&m_is_lookup),
@@ -54,6 +57,15 @@ void Application::count_options(po::variables_map& vm)
     // Boolean arguments
     m_cmdargs.set_argument("is_save", !m_is_save);
 	m_cmdargs.set_argument("is_lookup", !m_is_lookup);
+    if (m_is_verbose)
+    {
+        Utils::Logger()->set_stream(&std::cout);
+        Utils::Logger()->enable();
+    }
+    else
+    {
+        Utils::Logger()->disable();
+    }
 
     // Address of host
     arg = new CMDStrArgument(vm["host"].as<std::string>());
@@ -93,7 +105,7 @@ void Application::create_point(const std::string& position)
     std::size_t pos = position.find(",");
     if (std::string::npos == pos)
     {
-        SysUtil::error("Incorrect syntax of position");
+        Utils::Logger()->error({"Incorrect syntax of position"});
     }
     std::string lat_str = position.substr(0, pos);
     std::string lon_str = position.substr(++pos);
@@ -104,7 +116,7 @@ void Application::create_point(const std::string& position)
     }
     catch (std::invalid_argument e)
     {
-        SysUtil::error("Failed to parse position to double");
+        Utils::Logger()->error({"Failed to parse position to double"});
     }
     m_point = new GeoPoint(lat, lon);
 }
@@ -113,8 +125,8 @@ void Application::elevation_test(const std::string& path)
 {
 	m_dem.read(const_cast<std::string&>(path));
 	int elev = m_dem.get_elevation(m_point);
-	SysUtil::info({"Elevation at ", m_point->to_string(), " is ",
-            std::to_string(elev)});
+    Utils::Logger()->info({"Elevation at ", m_point->to_string(), " is ",
+        std::to_string(elev)});
 }
 
 void Application::receiver_test(const GeoPoint* points[2])
@@ -124,7 +136,8 @@ void Application::receiver_test(const GeoPoint* points[2])
 	std::string path = m_cmdargs.find("path")->get<std::string>();
 	if (!m_dem.is_points_valid(points))
 	{
-        SysUtil::error("The points range for data downloading is incorrect.");
+        Utils::Logger()->error({
+                "The points range for data downloading is incorrect."});
 		return;
 	}
 	m_receiver = new GeotiffReceiver(host, port, ConnectionType::LOCAL, path);
@@ -133,7 +146,7 @@ void Application::receiver_test(const GeoPoint* points[2])
 	m_receiver->receive(filename, points);
 	if (!m_dem.is_point_exists(m_point))
 	{
-        SysUtil::error({m_point->to_string(),
+        Utils::Logger()->error({m_point->to_string(),
                 " location does not contains in provided range."});
 		return;
 	}

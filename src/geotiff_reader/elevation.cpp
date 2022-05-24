@@ -1,11 +1,13 @@
-#include <math.h>
-
-#include "base/system.hpp"
+#include "utils/log.hpp"
 #include "base/cmd_argument.hpp"
 #include "geotiff_reader/elevation.hpp"
 #include "geotiff_reader/reader.hpp"
 #include "geotiff_types/geo_point.hpp"
 #include "geotiff_types/geo_pixel.hpp"
+
+#include <boost/filesystem.hpp>
+
+#include <math.h>
 
 DigitalElevationMgr::DigitalElevationMgr()
 	: m_reader(nullptr)
@@ -56,10 +58,10 @@ void DigitalElevationMgr::read(std::string& filename)
 	bool is_save = CMDArguments::instance().find("is_save")->get<bool>();
 	if (!is_save)
 	{
-		fs::path path(filename);
+        boost::filesystem::path path(filename);
 		filename = "/tmp/" + path.filename().string();
 	}
-	SysUtil::info({"Reading ", filename});
+    Utils::Logger()->info({"Reading ", filename});
 	if (filename != m_last_filename)
 	{
 		m_reader = new GeotiffReader(filename);

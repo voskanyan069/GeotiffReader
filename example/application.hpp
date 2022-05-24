@@ -32,6 +32,7 @@ private:
 private:
 	int m_argc;
 	char** m_argv;
+	bool m_is_verbose;
 	bool m_is_save;
 	bool m_is_lookup;
     GeoPoint* m_point;

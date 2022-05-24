@@ -1,3 +1,4 @@
+#include "utils/log.hpp"
 #include "base/system.hpp"
 #include "base/cmd_argument.hpp"
 #include "remote/geotiff_receiver.hpp"
@@ -48,22 +49,22 @@ void GeotiffReceiver::receive(const std::string& filename, const GeoPoint* point
 bool GeotiffReceiver::lookup_data(const std::string& path)
 {
 	bool rc = false;
-	if (m_is_lookup)
+    if (m_is_lookup)
 	{
-		SysUtil::info({"Looking for local data in ", path});
+        Utils::Logger()->info({"Looking for local data in ", path});
 		if (is_loaded(path))
 		{
-			SysUtil::info("Local data was found");
+            Utils::Logger()->info({"Local data was found"});
 			rc = true;
 		}
 		else
 		{
-			SysUtil::warn("Local data has not been found");
+            Utils::Logger()->warn({"Local data has not been found"});
 		}
 	}
 	else
 	{
-		SysUtil::info("Lookup for local data was disabled");
+        Utils::Logger()->info({"Lookup for local data was disabled"});
 	}
 	return rc;
 }
@@ -109,7 +110,7 @@ bool GeotiffReceiver::is_host_reachable()
     //size_t pos = m_host.find("http");
     //if (std::string::npos != pos)
     //{
-    //    SysUtil::warn("Http host testing not supporting yet *skipping step*");
+    //    Utils::Logger()->warn({"Http host testing not supporting yet *skipping step*"});
     //    return true;
     //}
     //int port = std::stoi(m_port);
@@ -128,7 +129,8 @@ bool GeotiffReceiver::is_host_reachable()
 
 void GeotiffReceiver::create_connection()
 {
-	SysUtil::info({"Trying to connect to the ", m_address, " address..."});
+    Utils::Logger()->info({"Trying to connect to the ", m_address,
+            " address..."});
 	bool rc = is_host_reachable();
 	if (!rc)
 	{
@@ -136,7 +138,7 @@ void GeotiffReceiver::create_connection()
         msg += strerror(errno);
         throw GeoException(msg, errno);
 	}
-	SysUtil::info("Connected to the server");
+	Utils::Logger()->info({"Connected to the server"});
 }
 
 void GeotiffReceiver::process_json_error()
@@ -170,7 +172,7 @@ void GeotiffReceiver::check_content()
     {
         throw GeoException("response content type is not supported", 5);
     }
-    SysUtil::info("File was successfuly downloaded");
+    Utils::Logger()->info({"File was successfuly downloaded"});
 }
 
 void GeotiffReceiver::check_output(const CURLcode& ec)
@@ -203,8 +205,8 @@ void GeotiffReceiver::download(const std::string& args, FILE* output)
 	}
 	CURLcode ec = CURLE_OK;
 	std::string url = m_address + m_api_base + "/polygon?" + args;
-	SysUtil::info({"Sending request to ", url});
-	SysUtil::info("Downloading...");
+    Utils::Logger()->info({"Sending request to ", url});
+    Utils::Logger()->info({"Downloading..."});
 	curl_easy_setopt(m_curl, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(m_curl, CURLOPT_WRITEDATA, output);
 	curl_easy_setopt(m_curl, CURLOPT_WRITEFUNCTION,

@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <vector>
 #include <random>
@@ -8,7 +9,7 @@
 #include <gtest/gtest.h>
 
 #include "test.hpp"
-#include "base/system.hpp"
+#include "utils/log.hpp"
 #include "base/cmd_argument.hpp"
 #include "geotiff_types/geo_point.hpp"
 #include "geotiff_types/connection_type.hpp"
@@ -27,6 +28,8 @@ TestApplication::TestApplication()
 	, m_cmdargs(CMDArguments::instance())
 	, m_dem(DigitalElevationMgr::instance())
 {
+    Utils::Logger()->set_stream(&std::cout);
+    Utils::Logger()->enable();
 	add_tests_path();
 }
 
@@ -74,11 +77,11 @@ void TestApplication::execute_command(const std::string &cmd,
 	reader.join();
 	if ("" == return_value)
 	{
-		SysUtil::warn("Command executed without output");
+		Utils::Logger()->warn({"Command executed without output"});
 	}
 	else
 	{
-		SysUtil::info({"Command returned:\t", return_value});
+		Utils::Logger()->info({"Command returned:\t", return_value});
 	}
 }
 
@@ -89,12 +92,13 @@ void TestApplication::exec_py_test(const std::string& name,
 	fs::path py_path = bp::search_path("python3");
 	if ("" == py_path)
 	{
-		SysUtil::warn("python3 not found");
-		SysUtil::warn("Trying to execute with `python` command");
+		Utils::Logger()->warn({"python3 not found"});
+		Utils::Logger()->warn({"Trying to execute with `python` command"});
 		py_path = bp::search_path("python");
 	}
 	std::string test_path = m_tests_path + "/" + m_tests[test_name];
-	SysUtil::info({"Executing ", test_path, " script for this point: ", point});
+	Utils::Logger()->info({"Executing ", test_path, " script for this point: ",
+            point});
 	execute_command(py_path.string(), {test_path, point}, return_value);
 }
 
@@ -119,6 +123,7 @@ float random_float(int from, int to)
 std::string receive_data(const GeoPoint* points[2])
 {
 	std::string filename;
+    app->get_dem().get_filename(filename, points);
 	app->get_receiver()->receive(filename, points);
 	return filename;
 }
@@ -212,8 +217,8 @@ TEST(ReadTest, Positive)
 	{
 		const GeoPoint* point = points2test[i];
 		int elev = app->get_dem().get_elevation(point);
-		SysUtil::info({"Comparing ", std::to_string(values[i]),
-				" and ", std::to_string(elev)});
+		Utils::Logger()->info({"Comparing ", std::to_string(values[i]),
+                " and ", std::to_string(elev)});
 		ASSERT_EQ(values[i], elev);
 	}
 }
@@ -229,7 +234,7 @@ TEST(ReadTest, Negative)
 	receive_and_read(area_pts);
 	for (int i = 0; i < 4; ++i)
 	{
-		SysUtil::info({"Checking for ", test_points[i]->to_string()});
+		Utils::Logger()->info({"Checking for ", test_points[i]->to_string()});
 		ASSERT_EQ(0, app->get_dem().is_point_exists(test_points[i]));
 	}
 }
@@ -246,7 +251,7 @@ TEST(ElevationTest, Random)
 		const GeoPoint* pt = new GeoPoint(lat, lon);
 		app->exec_py_test("reader", pt->to_string(), return_value);
 		std::string elev = std::to_string(app->get_dem().get_elevation(pt));
-		SysUtil::info({"Comparing ", return_value, " and ", elev});
+		Utils::Logger()->info({"Comparing ", return_value, " and ", elev});
 		EXPECT_EQ(return_value, elev);
 	}
 }
@@ -268,7 +273,7 @@ TEST(AirmapCompareTest, Random)
 		std::string elev = std::to_string(app->get_dem().get_elevation(point));
 		if (values[i] != "None")
 		{
-			SysUtil::info({"Comparing [", std::to_string(i), "] ",
+			Utils::Logger()->info({"Comparing [", std::to_string(i), "] ",
 					values[i], " and ", elev});
 			EXPECT_EQ(values[i], elev);
 		}

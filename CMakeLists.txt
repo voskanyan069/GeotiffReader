@@ -33,6 +33,7 @@ FILE(GLOB BASE_LIB_SOURCES
 	)
 
 FILE(GLOB READER_LIB_SOURCES
+	"${PROJECT_SOURCE_DIR}/src/utils/*.cpp"
 	"${PROJECT_SOURCE_DIR}/src/remote/*.cpp"
 	"${PROJECT_SOURCE_DIR}/src/geotiff_types/*.cpp"
 	"${PROJECT_SOURCE_DIR}/src/geotiff_reader/*.cpp"
