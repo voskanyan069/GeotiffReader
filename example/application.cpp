@@ -16,7 +16,7 @@ namespace po = boost::program_options;
 Application::Application(int argc, char* argv[])
 	: m_argc(argc)
 	, m_argv(argv)
-	, m_is_verbose(false)
+	, m_is_verbose(true)
 	, m_is_save(true)
 	, m_is_lookup(true)
     , m_point(nullptr)
@@ -31,9 +31,9 @@ void Application::add_options(po::options_description& desc,
 {
 	desc.add_options()
 		("help,h", "show help message")
-		("verbose,v", po::bool_switch(&m_is_verbose),
-         "show output messages")
-		("no-save,s", po::bool_switch(&m_is_save),
+		("no-verbose,V", po::bool_switch(&m_is_verbose),
+         "disable log messages")
+		("no-save,S", po::bool_switch(&m_is_save),
 		 "disable saving of downloaded data")
 		("no-local,L", po::bool_switch(&m_is_lookup),
 		 "disable looking-up for local data")
@@ -57,7 +57,7 @@ void Application::count_options(po::variables_map& vm)
     // Boolean arguments
     m_cmdargs.set_argument("is_save", !m_is_save);
 	m_cmdargs.set_argument("is_lookup", !m_is_lookup);
-    if (m_is_verbose)
+    if (!m_is_verbose)
     {
         Utils::Logger()->set_stream(&std::cout);
         Utils::Logger()->enable();

@@ -58,7 +58,7 @@ void Utils::Logs::print(const std::string& color,
     }
     if (nullptr == m_out)
     {
-        throw  GeoException("Output stream is null", 15);
+        throw GeoException("output stream is null", 15);
     }
     std::cout << color;
     for (const auto& value : data)

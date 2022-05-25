@@ -66,7 +66,7 @@ void GeotiffReader::get_array(int layer_idx)
 				row, m_cols, 1, row_buff, m_cols, 1, band_type, 0, 0);
 		if (e)
 		{
-			throw GeoException("Failed to read tiff file", 1);
+			throw GeoException("failed to read tiff file", 1);
 		}
 		m_bandlayer[row] = new float[m_cols];
 		for(int col = 0; col < m_cols; ++col) {
