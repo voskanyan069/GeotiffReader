@@ -39,11 +39,17 @@ GeotiffReceiver::GeotiffReceiver(const std::string& host,
 void GeotiffReceiver::receive(const std::string& filename, const GeoPoint* points[2])
 {
 	get_options();
-	m_path = m_root_path + "/" + filename;
-	if (!lookup_data(m_path))
-	{
-		receive_data(points);
-	}
+    if (!m_is_save)
+    {
+        m_path = "/tmp/" + filename;
+        receive_data(points);
+        return;
+    }
+    m_path = m_root_path + "/" + filename;
+    if (!lookup_data(m_path))
+    {
+        receive_data(points);
+    }
 }
 
 bool GeotiffReceiver::lookup_data(const std::string& path)
@@ -87,11 +93,6 @@ void GeotiffReceiver::get_options()
 {
 	m_is_save = m_cmdargs.find("is_save")->get<bool>();
 	m_is_lookup = m_cmdargs.find("is_lookup")->get<bool>();
-
-	if (!m_is_save)
-	{
-		m_root_path = "/tmp/";
-	}
 }
 
 void GeotiffReceiver::points2args(const GeoPoint* points[2], std::string& args)

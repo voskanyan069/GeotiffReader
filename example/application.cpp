@@ -156,8 +156,8 @@ void Application::receiver_test(const GeoPoint* points[2])
 
 void Application::execute()
 {
-	GeoPoint* pt1 = new GeoPoint(42.7990, 45.5376);
-	GeoPoint* pt2 = new GeoPoint(42.7990, 45.5376);
+	GeoPoint* pt1 = new GeoPoint(40.7990, 45.5376);
+	GeoPoint* pt2 = new GeoPoint(42.7990, 47.5376);
 	const GeoPoint* points[2] = { pt1, pt2 };
 	receiver_test(points);
 	delete pt1;
