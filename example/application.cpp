@@ -7,6 +7,7 @@
 #include "base/cmd_argument.hpp"
 #include "geotiff_types/geo_point.hpp"
 #include "geotiff_types/connection_type.hpp"
+#include "geotiff_types/geo_exception.hpp"
 #include "geotiff_reader/reader.hpp"
 #include "geotiff_reader/elevation.hpp"
 #include "remote/geotiff_receiver.hpp"
@@ -143,7 +144,15 @@ void Application::receiver_test(const GeoPoint* points[2])
 	m_receiver = new GeotiffReceiver(host, port, ConnectionType::LOCAL, path);
 	std::string filename;
 	m_dem.get_filename(filename, points);
-	m_receiver->receive(filename, points);
+    try
+    {
+	    m_receiver->receive(filename, points);
+    }
+    catch (const GeoException& ge)
+    {
+        Utils::Logger()->error({"Error: ", ge.get_message()});
+        exit(ge.get_code());
+    }
 	if (!m_dem.is_point_exists(m_point))
 	{
         Utils::Logger()->error({m_point->to_string(),
