@@ -1,10 +1,23 @@
 #include <gdal/gdal_priv.h>
+#include <gdal/cpl_error.h>
 
 #include "geotiff_types/geo_exception.hpp"
 #include "geotiff_reader/reader.hpp"
 #include "base/system.hpp"
 
 const int Z_LAYER_INDEX = 1;
+
+void gdal_error_handler(CPLErr cpl_err, int err_no,
+        const char* msg)
+{
+    switch (cpl_err)
+    {
+        case CE_Fatal:
+        case CE_Failure:
+            throw GeoException(msg, err_no);
+            break;
+    }
+}
 
 GeotiffReader::GeotiffReader(const std::string& filename)
 	: m_dataset(nullptr)
@@ -16,14 +29,15 @@ GeotiffReader::GeotiffReader(const std::string& filename)
     , m_invgeotransform(new double[6])
     , m_is_geotransform_read(false)
 {
-	GDALAllRegister();
-	m_dataset = (GDALDataset*) GDALOpen(filename.c_str(), GA_ReadOnly);
+    CPLSetErrorHandler(::gdal_error_handler);
+    GDALAllRegister();
+    m_dataset = (GDALDataset*) GDALOpen(filename.c_str(), GA_ReadOnly);
     m_band = GDALRasterBand::FromHandle(GDALGetRasterBand(
                 m_dataset, Z_LAYER_INDEX));
-	m_rows = GDALGetRasterYSize(m_dataset);
-	m_cols = GDALGetRasterXSize(m_dataset);
-	m_levels = GDALGetRasterCount(m_dataset);
-	m_bandlayer = new float*[m_rows];
+    m_rows = GDALGetRasterYSize(m_dataset);
+    m_cols = GDALGetRasterXSize(m_dataset);
+    m_levels = GDALGetRasterCount(m_dataset);
+    m_bandlayer = new float*[m_rows];
 }
 
 double* GeotiffReader::geotransform()
@@ -66,7 +80,7 @@ void GeotiffReader::get_array(int layer_idx)
 				row, m_cols, 1, row_buff, m_cols, 1, band_type, 0, 0);
 		if (e)
 		{
-			throw GeoException("failed to read tiff file", 1);
+			throw GeoException("Failed to read tiff file", 1);
 		}
 		m_bandlayer[row] = new float[m_cols];
 		for(int col = 0; col < m_cols; ++col) {

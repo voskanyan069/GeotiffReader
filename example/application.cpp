@@ -119,6 +119,7 @@ void Application::create_point(const std::string& position)
     if (std::string::npos == pos)
     {
         Utils::Logger()->error({"Incorrect syntax of position"});
+        exit(-1);
     }
     std::string lat_str = position.substr(0, pos);
     std::string lon_str = position.substr(++pos);
@@ -130,13 +131,22 @@ void Application::create_point(const std::string& position)
     catch (const std::invalid_argument& e)
     {
         Utils::Logger()->error({"Failed to parse position to double"});
+        exit(-1);
     }
     m_point = new GeoPoint(lat, lon);
 }
 
 void Application::elevation_test(const std::string& path)
 {
-	m_dem.read(const_cast<std::string&>(path));
+    try
+    {
+        m_dem.read(const_cast<std::string&>(path));
+    }
+    catch (const GeoException& ge)
+    {
+        Utils::Logger()->error({"Load file failed with: ", ge.get_message()});
+        exit(ge.get_code());
+    }
 	int elev = m_dem.get_elevation(m_point);
     Utils::Logger()->info({"Elevation at ", m_point->to_string(), " is ",
         std::to_string(elev)});
@@ -151,7 +161,7 @@ void Application::receiver_test(const GeoPoint* points[2])
 	{
         Utils::Logger()->error({
                 "The points range for data downloading is incorrect."});
-		return;
+        exit(-1);
 	}
 	m_receiver = new GeotiffReceiver(host, port, ConnectionType::LOCAL, path);
 	std::string filename;
@@ -162,14 +172,14 @@ void Application::receiver_test(const GeoPoint* points[2])
     }
     catch (const GeoException& ge)
     {
-        Utils::Logger()->error({"Error: ", ge.get_message()});
+        Utils::Logger()->error({"Receive file failed with: ",ge.get_message()});
         exit(ge.get_code());
     }
 	if (!m_dem.is_point_exists(m_point))
 	{
         Utils::Logger()->error({m_point->to_string(),
                 " location does not contains in provided range."});
-		return;
+        exit(-1);
 	}
 	std::string file_path = path + "/" + filename;
 	elevation_test(file_path);

@@ -81,7 +81,7 @@ void GeotiffReceiver::receive_data(const GeoPoint* points[2])
 	FILE* output = fopen(m_path.c_str(), "wb");
 	if (!output)
 	{
-        std::string msg = "could not open " + m_path;
+        std::string msg = "Could not open " + m_path;
 		throw GeoException(msg, 2);
 	}
 	points2args(points, args);
@@ -135,7 +135,7 @@ void GeotiffReceiver::create_connection()
 	bool rc = is_host_reachable();
 	if (!rc)
 	{
-        std::string msg = "host is not reachable: ";
+        std::string msg = "Host is not reachable: ";
         msg += strerror(errno);
         throw GeoException(msg, errno);
 	}
@@ -151,7 +151,7 @@ void GeotiffReceiver::process_json_error()
         //ss << "request failed with this output" << std::endl;
         //ss << json.rdbuf();
         //std::string msg = ss.str();
-        std::string msg = "request failed";
+        std::string msg = "Request failed";
         throw GeoException(msg, 3);
     }
 }
@@ -163,7 +163,7 @@ void GeotiffReceiver::check_content()
     std::string err_message;
     if (res || !ct)
     {
-        throw GeoException("invalid request was sent", 4);
+        throw GeoException("Invalid request was sent", 4);
     }
     else if (strcmp(ct, "application/json") == 0)
     {
@@ -171,7 +171,7 @@ void GeotiffReceiver::check_content()
     }
     else if (strcmp(ct, "image/tiff") != 0)
     {
-        throw GeoException("response content type is not supported", 5);
+        throw GeoException("Response content type is not supported", 5);
     }
     Utils::Logger()->info({"File was successfuly downloaded"});
 }
@@ -182,7 +182,7 @@ void GeotiffReceiver::check_output(const CURLcode& ec)
 	if (CURLE_OK != ec)
 	{
 		std::string error_msg = curl_easy_strerror(ec);
-        std::string msg = "curl failed: " + error_msg;
+        std::string msg = "Curl failed: " + error_msg;
 		throw GeoException(msg, 6);
 	}
 }
@@ -198,7 +198,7 @@ void GeotiffReceiver::download(const std::string& args, FILE* output)
 {
 	if (!m_curl)
 	{
-		throw GeoException("could not init curl", 7);
+		throw GeoException("Could not init curl", 7);
 	}
 	CURLcode ec = CURLE_OK;
 	std::string url = m_address + m_api_base + "/polygon?" + args;
