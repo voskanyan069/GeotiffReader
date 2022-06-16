@@ -1,4 +1,5 @@
 #include <iostream>
+#include <ostream>
 
 #include <boost/program_options.hpp>
 
@@ -20,6 +21,7 @@ Application::Application(int argc, char* argv[])
 	, m_is_verbose(true)
 	, m_is_save(true)
 	, m_is_lookup(true)
+    , m_logfile(nullptr)
     , m_point(nullptr)
 	, m_receiver(nullptr)
 	, m_dem(DigitalElevationMgr::instance())
@@ -44,6 +46,8 @@ void Application::add_options(po::options_description& desc,
 		 "port of the host")
 		("path,p", po::value<std::string>()->default_value("./data/"),
 		 "path to save downloaded data")
+		("log,l", po::value<std::string>(),
+		 "redirect output messages to file")
         ("pos", po::value<std::string>()->default_value("42.7990,45.5376"),
          "coordinates for get elevation\n(syntax: <lat>,<lon>)")
 		;
@@ -68,6 +72,15 @@ void Application::count_options(po::variables_map& vm)
         Utils::Logger()->disable();
     }
 
+    // Log file
+    if (vm.count("log"))
+    {
+        std::string log = vm["log"].as<std::string>();
+        m_logfile = new std::ofstream(log);
+        Utils::Logger()->set_stream(m_logfile);
+        Utils::Logger()->enable();
+    }
+
     // Address of host
     arg = new CMDStrArgument(vm["host"].as<std::string>());
     m_cmdargs.set_argument("host", (ArgumentBase*)arg);
@@ -85,7 +98,7 @@ void Application::count_options(po::variables_map& vm)
     create_point(position);
 }
 
-bool Application::parse_options()
+void Application::parse_options()
 {
 	po::variables_map vm;
 	po::options_description desc("Allowed options");
@@ -93,10 +106,9 @@ bool Application::parse_options()
 	if (vm.count("help"))
 	{
 		std::cout << desc << std::endl;
-		return false;
+        exit(1);
 	}
 	count_options(vm);
-	return true;
 }
 
 void Application::create_point(const std::string& position)
@@ -177,16 +189,16 @@ Application::~Application()
 {
     delete m_point;
 	delete m_receiver;
+    if (nullptr != m_logfile)
+    {
+        delete m_logfile;
+    }
 }
 
 int main(int argc, char* argv[])
 {
-	Application* app = new Application(argc, argv);
-	int options = app->parse_options();
-	if (options)
-	{
-		app->execute();
-	}
-	delete app;
-	return 0;
+	Application app(argc, argv);
+    app.parse_options();
+    app.execute();
+    return 0;
 }

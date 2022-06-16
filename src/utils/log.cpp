@@ -11,7 +11,6 @@
 #define WARN_CONSOLE    "\033[33m"
 #define ERROR_CONSOLE   "\033[31m"
 
-
 Utils::Logs* Utils::Logger()
 {
     return &Utils::Logs::instance();
@@ -60,12 +59,19 @@ void Utils::Logs::print(const std::string& color,
     {
         throw GeoException("output stream is null", 15);
     }
-    std::cout << color;
+    if (&std::cout == m_out)
+    {
+        *m_out << color;
+    }
     for (const auto& value : data)
     {
         *m_out << value;
     }
-    std::cout << RESET_CONSOLE << std::endl;
+    if (&std::cout == m_out)
+    {
+        *m_out << RESET_CONSOLE;
+    }
+    *m_out << std::endl;
 }
 
 void Utils::Logs::info(const std::vector<std::string>& data)

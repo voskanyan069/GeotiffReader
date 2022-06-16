@@ -2,6 +2,7 @@
 #define __EXAMPLE_APPLICATION_HPP__
 
 #include <string>
+#include <ostream>
 
 #include <boost/program_options.hpp>
 
@@ -19,7 +20,7 @@ public:
 	Application(int argc, char* argv[]);
 	~Application();
 
-	bool parse_options();
+	void parse_options();
 	void execute();
 
 private:
@@ -35,6 +36,7 @@ private:
 	bool m_is_verbose;
 	bool m_is_save;
 	bool m_is_lookup;
+    std::ofstream* m_logfile;
     GeoPoint* m_point;
 	GeotiffReceiver* m_receiver;
 	DigitalElevationMgr& m_dem;
