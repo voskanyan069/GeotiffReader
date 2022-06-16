@@ -182,10 +182,6 @@ void GeotiffReceiver::check_output(const CURLcode& ec)
 	if (CURLE_OK != ec)
 	{
 		std::string error_msg = curl_easy_strerror(ec);
-        if (m_is_lookup)
-        {
-		    SysUtil::remove(m_path);
-        }
         std::string msg = "curl failed: " + error_msg;
 		throw GeoException(msg, 6);
 	}
@@ -214,7 +210,15 @@ void GeotiffReceiver::download(const std::string& args, FILE* output)
 			&GeotiffReceiver::process_response);
 	ec = curl_easy_perform(m_curl);
 	fclose(output);
-	check_output(ec);
+	try
+    {
+        check_output(ec);
+    }
+    catch (const GeoException& ge)
+    {
+        SysUtil::remove(m_path);
+        throw;
+    }
 }
 
 GeotiffReceiver::~GeotiffReceiver()

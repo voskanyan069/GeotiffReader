@@ -127,7 +127,7 @@ void Application::create_point(const std::string& position)
         lat = std::stod(lat_str);
         lon = std::stod(lon_str);
     }
-    catch (std::invalid_argument e)
+    catch (const std::invalid_argument& e)
     {
         Utils::Logger()->error({"Failed to parse position to double"});
     }
