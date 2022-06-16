@@ -11,44 +11,44 @@
 #define WARN_CONSOLE    "\033[33m"
 #define ERROR_CONSOLE   "\033[31m"
 
-Utils::Logs* Utils::Logger()
+Utils::OutputMessagesMgr* Utils::Logger()
 {
-    return &Utils::Logs::instance();
+    return &Utils::OutputMessagesMgr::instance();
 }
 
-Utils::Logs& Utils::Logs::instance()
+Utils::OutputMessagesMgr& Utils::OutputMessagesMgr::instance()
 {
-    static Utils::Logs INSTANCE;
+    static Utils::OutputMessagesMgr INSTANCE;
     return INSTANCE;
 }
 
-Utils::Logs::Logs()
+Utils::OutputMessagesMgr::OutputMessagesMgr()
     : m_state(ENABLED)
     , m_out(nullptr)
 {
 }
 
-void Utils::Logs::enable()
+void Utils::OutputMessagesMgr::enable()
 {
     m_state = ENABLED;
 }
 
-void Utils::Logs::disable()
+void Utils::OutputMessagesMgr::disable()
 {
     m_state = DISABLED;
 }
 
-Utils::Logs::LoggerState Utils::Logs::get_state() const
+Utils::OutputMessagesMgr::LoggerState Utils::OutputMessagesMgr::get_state() const
 {
     return m_state;
 }
 
-void Utils::Logs::set_stream(std::ostream* os)
+void Utils::OutputMessagesMgr::set_stream(std::ostream* os)
 {
     m_out = os;
 }
 
-void Utils::Logs::print(const std::string& color,
+void Utils::OutputMessagesMgr::print(const std::string& color,
         const std::vector<std::string>& data)
 {
     if (DISABLED == m_state)
@@ -74,21 +74,21 @@ void Utils::Logs::print(const std::string& color,
     *m_out << std::endl;
 }
 
-void Utils::Logs::info(const std::vector<std::string>& data)
+void Utils::OutputMessagesMgr::info(const std::vector<std::string>& data)
 {
     print(INFO_CONSOLE, data);
 }
 
-void Utils::Logs::warn(const std::vector<std::string>& data)
+void Utils::OutputMessagesMgr::warn(const std::vector<std::string>& data)
 {
     print(WARN_CONSOLE, data);
 }
 
-void Utils::Logs::error(const std::vector<std::string>& data)
+void Utils::OutputMessagesMgr::error(const std::vector<std::string>& data)
 {
     print(ERROR_CONSOLE, data);
 }
 
-Utils::Logs::~Logs()
+Utils::OutputMessagesMgr::~OutputMessagesMgr()
 {
 }

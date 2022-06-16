@@ -5,6 +5,7 @@
 
 #include "application.hpp"
 #include "utils/log.hpp"
+#include "utils/query.hpp"
 #include "base/cmd_argument.hpp"
 #include "geotiff_types/geo_point.hpp"
 #include "geotiff_types/connection_type.hpp"
@@ -145,11 +146,17 @@ void Application::elevation_test(const std::string& path)
     catch (const GeoException& ge)
     {
         Utils::Logger()->error({"Load file failed with: ", ge.get_message()});
-        exit(ge.get_code());
+        if (!Utils::Querier()->ask_for_yn("Try again",
+                    Utils::QueryMessagesMgr::QueryValueYN::YES))
+        {
+            exit(ge.get_code());
+        }
+        elevation_test(path);
     }
 	int elev = m_dem.get_elevation(m_point);
     Utils::Logger()->info({"Elevation at ", m_point->to_string(), " is ",
         std::to_string(elev)});
+    exit(0);
 }
 
 void Application::receiver_test(const GeoPoint* points[2])
@@ -173,7 +180,12 @@ void Application::receiver_test(const GeoPoint* points[2])
     catch (const GeoException& ge)
     {
         Utils::Logger()->error({"Receive file failed with: ",ge.get_message()});
-        exit(ge.get_code());
+        if (!Utils::Querier()->ask_for_yn("Try again",
+                    Utils::QueryMessagesMgr::QueryValueYN::NO))
+        {
+            exit(ge.get_code());
+        }
+        receiver_test(points);
     }
 	if (!m_dem.is_point_exists(m_point))
 	{

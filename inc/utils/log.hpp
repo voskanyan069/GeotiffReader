@@ -7,17 +7,16 @@
 
 namespace Utils {
 
-class Logs
+class OutputMessagesMgr
 {
-private:
     typedef enum { ENABLED, DISABLED } LoggerState;
 
 public:
-    static Logs& instance();
+    static OutputMessagesMgr& instance();
 
-    Logs(const Logs&) = delete;
-    Logs& operator=(const Logs&) = delete;
-    ~Logs();
+    OutputMessagesMgr(const OutputMessagesMgr&) = delete;
+    OutputMessagesMgr& operator=(const OutputMessagesMgr&) = delete;
+    ~OutputMessagesMgr();
 
     void enable();
     void disable();
@@ -28,7 +27,7 @@ public:
     void error(const std::vector<std::string>& data);
 
 private:
-    Logs();
+    OutputMessagesMgr();
     void print(const std::string& color, const std::vector<std::string>& data);
 
 private:
@@ -36,7 +35,7 @@ private:
     std::ostream* m_out;
 };
 
-Logs* Logger();
+OutputMessagesMgr* Logger();
 
 } // Utils
 
