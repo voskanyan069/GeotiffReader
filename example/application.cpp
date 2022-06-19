@@ -39,7 +39,7 @@ void Application::add_options(po::options_description& desc,
          "disable log messages")
 		("no-save,S", po::bool_switch(&m_is_save),
 		 "disable saving of downloaded data")
-		("no-local,L", po::bool_switch(&m_is_lookup),
+		("no-lookup,L", po::bool_switch(&m_is_lookup),
 		 "disable looking-up for local data")
 		("host,H", po::value<std::string>()->default_value("localhost"),
 		 "host address to connect")
