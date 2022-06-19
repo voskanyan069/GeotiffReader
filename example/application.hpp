@@ -26,9 +26,10 @@ public:
 private:
 	void add_options(po::options_description& desc, po::variables_map& vm);
 	void count_options(po::variables_map& vm);
+    void process_save_path(const std::string& path);
     void create_point(const std::string& position);
 	void elevation_test(const std::string& path);
-	void receiver_test(const GeoPoint* points[2]);
+    void receiver_test(const GeoPoint* points[2]);
 
 private:
 	int m_argc;

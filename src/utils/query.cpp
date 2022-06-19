@@ -77,7 +77,6 @@ bool Utils::QueryMessagesMgr::process_msg(const std::string& message,
         std::string input;
         std::cout << query_msg;
         std::getline(std::cin, input);
-        std::cout << std::endl;
         res = check_input(input, defval, ret);
     } while (!res);
     return ret;

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <ostream>
 
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include "application.hpp"
@@ -14,6 +15,7 @@
 #include "geotiff_reader/elevation.hpp"
 #include "remote/geotiff_receiver.hpp"
 
+namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 
 Application::Application(int argc, char* argv[])
@@ -56,6 +58,33 @@ void Application::add_options(po::options_description& desc,
 	po::notify(vm);
 }
 
+void Application::process_save_path(const std::string& path)
+{
+    if (fs::is_directory(path))
+    {
+        return;
+    }
+    if (fs::exists(path))
+    {
+        Utils::Logger()->error({"File with this name already exists"});
+        exit(-1);
+    }
+    Utils::Logger()->warn({path, " directory does not exists"});
+    if (!Utils::Querier()->ask_for_yn("Create new directory " + path,
+                Utils::QueryMessagesMgr::QueryValueYN::NO))
+    {
+        Utils::Logger()->error({"Cannot save and load from ", path});
+        exit(-1);
+    }
+    boost::system::error_code ec;
+    fs::create_directories(path, ec);
+    if (ec)
+    {
+        Utils::Logger()->error({ec.message()});
+        exit(ec.value());
+    }
+}
+
 void Application::count_options(po::variables_map& vm)
 {
     CMDStrArgument* arg = nullptr;
@@ -91,7 +120,9 @@ void Application::count_options(po::variables_map& vm)
     m_cmdargs.set_argument("port", (ArgumentBase*)arg);
 
     // Path to local data
-    arg = new CMDStrArgument(vm["path"].as<std::string>());
+    std::string path = vm["path"].as<std::string>();
+    process_save_path(path);
+    arg = new CMDStrArgument(path);
     m_cmdargs.set_argument("path", (ArgumentBase*)arg);
 
     // Position
