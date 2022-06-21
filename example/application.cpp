@@ -71,7 +71,7 @@ void Application::process_save_path(const std::string& path)
     }
     Utils::Logger()->warn({path, " directory does not exists"});
     if (!Utils::Querier()->ask_for_yn("Create new directory " + path,
-                Utils::QueryMessagesMgr::QueryValueYN::NO))
+                Utils::QueryMessagesMgr::QueryValueYN::YES))
     {
         Utils::Logger()->error({"Cannot save and load from ", path});
         exit(-1);
