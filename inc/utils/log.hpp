@@ -28,6 +28,12 @@ public:
 
 private:
     OutputMessagesMgr();
+    bool is_stream_valid();
+    void change_color(const std::string& color);
+    void reset_color();
+    void print_date();
+    void print_message(const std::string& prefix,
+            const std::vector<std::string>& data);
     void print(const std::string& color, const std::string& prefix,
             const std::vector<std::string>& data);
 

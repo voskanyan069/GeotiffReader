@@ -5,6 +5,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+#include <iomanip>
+#include <ctime>
 
 #define RESET_CONSOLE   "\033[0m"
 #define INFO_CONSOLE    "\033[32m"
@@ -48,31 +50,67 @@ void Utils::OutputMessagesMgr::set_stream(std::ostream* os)
     m_out = os;
 }
 
-void Utils::OutputMessagesMgr::print(const std::string& color,
-        const std::string& prefix,
-        const std::vector<std::string>& data)
+bool Utils::OutputMessagesMgr::is_stream_valid()
 {
     if (DISABLED == m_state)
     {
-        return;
+        return false;
     }
     if (nullptr == m_out)
     {
         throw GeoException("Output stream is null", 15);
     }
+    return true;
+}
+
+void Utils::OutputMessagesMgr::change_color(const std::string& color)
+{
     if (&std::cout == m_out)
     {
         *m_out << color;
     }
+}
+
+void Utils::OutputMessagesMgr::reset_color()
+{
+    if (&std::cout == m_out)
+    {
+        *m_out << RESET_CONSOLE;
+    }
+}
+
+void Utils::OutputMessagesMgr::print_date()
+{
+    if (&std::cout == m_out)
+    {
+        return;
+    }
+    auto t = std::time(nullptr);
+    auto tm = *std::localtime(&t);
+    *m_out << "[" << std::put_time(&tm, "%d-%m-%Y %H:%M:%S") << "]";
+}
+
+void Utils::OutputMessagesMgr::print_message(const std::string& prefix,
+        const std::vector<std::string>& data)
+{
     *m_out << prefix;
     for (const auto& value : data)
     {
         *m_out << value;
     }
-    if (&std::cout == m_out)
+}
+
+void Utils::OutputMessagesMgr::print(const std::string& color,
+        const std::string& prefix, const std::vector<std::string>& data)
+{
+    if (!is_stream_valid())
     {
-        *m_out << RESET_CONSOLE;
+        return;
     }
+    change_color(color);
+    print_date();
+    print_message(prefix, data);
+    reset_color();
     *m_out << std::endl;
 }
 
