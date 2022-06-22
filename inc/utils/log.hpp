@@ -28,7 +28,8 @@ public:
 
 private:
     OutputMessagesMgr();
-    void print(const std::string& color, const std::vector<std::string>& data);
+    void print(const std::string& color, const std::string& prefix,
+            const std::vector<std::string>& data);
 
 private:
     LoggerState m_state;

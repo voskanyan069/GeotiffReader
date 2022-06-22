@@ -49,6 +49,7 @@ void Utils::OutputMessagesMgr::set_stream(std::ostream* os)
 }
 
 void Utils::OutputMessagesMgr::print(const std::string& color,
+        const std::string& prefix,
         const std::vector<std::string>& data)
 {
     if (DISABLED == m_state)
@@ -63,6 +64,7 @@ void Utils::OutputMessagesMgr::print(const std::string& color,
     {
         *m_out << color;
     }
+    *m_out << prefix;
     for (const auto& value : data)
     {
         *m_out << value;
@@ -76,17 +78,17 @@ void Utils::OutputMessagesMgr::print(const std::string& color,
 
 void Utils::OutputMessagesMgr::info(const std::vector<std::string>& data)
 {
-    print(INFO_CONSOLE, data);
+    print(INFO_CONSOLE, " [@I] ", data);
 }
 
 void Utils::OutputMessagesMgr::warn(const std::vector<std::string>& data)
 {
-    print(WARN_CONSOLE, data);
+    print(WARN_CONSOLE, " [@W] ", data);
 }
 
 void Utils::OutputMessagesMgr::error(const std::vector<std::string>& data)
 {
-    print(ERROR_CONSOLE, data);
+    print(ERROR_CONSOLE, " [@E] ", data);
 }
 
 Utils::OutputMessagesMgr::~OutputMessagesMgr()
